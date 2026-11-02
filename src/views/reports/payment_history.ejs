@@ -1,0 +1,193 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="container-fluid px-lg-5 my-4">
+  <!-- Breadcrumb & Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="/"><i class="bi bi-house-door"></i> Home</a></li>
+        <li class="breadcrumb-item"><a href="/reports">Reports</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Payment History Report</li>
+      </ol>
+    </nav>
+    <div class="d-flex gap-2">
+      <button onclick="window.print()" class="btn btn-outline-secondary btn-sm px-3 shadow-sm">
+        <i class="bi bi-printer me-1"></i>Print Report
+      </button>
+      <a href="/reports" class="btn btn-outline-dark btn-sm px-3 shadow-sm">
+        <i class="bi bi-arrow-left me-1"></i>All Reports
+      </a>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm bg-white mb-4">
+    <div class="card-body p-4">
+      <div class="d-flex align-items-center gap-3">
+        <div class="p-3 bg-info-subtle text-info rounded-3">
+          <i class="bi bi-credit-card-2-back fs-2"></i>
+        </div>
+        <div>
+          <h3 class="fw-bold text-dark mb-0">Payment History & Settlement Audit Report</h3>
+          <p class="text-muted small mb-0">Comprehensive transaction ledger across Cash, UPI, and POS instruments with audit timestamps.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Toolbar -->
+  <div class="card border-0 shadow-sm bg-white mb-4">
+    <div class="card-body p-3">
+      <form action="/reports/payment-history" method="GET" class="row g-2 align-items-end">
+        <div class="col-sm-6 col-md-3">
+          <label class="form-label small fw-semibold text-muted mb-1">Search Keyword</label>
+          <input type="text" name="search" class="form-control form-control-sm" placeholder="Ref, Booking, Customer, or Txn..." value="<%= filters.search %>">
+        </div>
+        <div class="col-sm-6 col-md-2">
+          <label class="form-label small fw-semibold text-muted mb-1">From Date</label>
+          <input type="date" name="startDate" class="form-control form-control-sm" value="<%= filters.startDate %>">
+        </div>
+        <div class="col-sm-6 col-md-2">
+          <label class="form-label small fw-semibold text-muted mb-1">To Date</label>
+          <input type="date" name="endDate" class="form-control form-control-sm" value="<%= filters.endDate %>">
+        </div>
+        <div class="col-sm-6 col-md-2">
+          <label class="form-label small fw-semibold text-muted mb-1">Method</label>
+          <select name="method" class="form-select form-select-sm">
+            <option value="all">All Methods</option>
+            <% methods.forEach(m => { %>
+              <option value="<%= m %>" <%= filters.method === m ? 'selected' : '' %>><%= m %></option>
+            <% }); %>
+          </select>
+        </div>
+        <div class="col-sm-6 col-md-1">
+          <label class="form-label small fw-semibold text-muted mb-1">Status</label>
+          <select name="status" class="form-select form-select-sm">
+            <option value="all">All</option>
+            <% statuses.forEach(s => { %>
+              <option value="<%= s %>" <%= filters.status === s ? 'selected' : '' %>><%= s %></option>
+            <% }); %>
+          </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+          <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-funnel me-1"></i>Filter</button>
+          <a href="/reports/payment-history" class="btn btn-light border btn-sm" title="Clear Filters"><i class="bi bi-x-circle"></i></a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Summary KPI Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-2">
+      <div class="card border-0 shadow-sm bg-white h-100">
+        <div class="card-body p-3">
+          <div class="text-muted small text-uppercase fw-semibold">Transactions</div>
+          <h4 class="fw-bold text-dark my-1"><%= summary.total_count %></h4>
+          <span class="badge bg-light text-secondary border">Total Processed</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm bg-white h-100">
+        <div class="card-body p-3">
+          <div class="text-muted small text-uppercase fw-semibold text-success">Total Collected</div>
+          <h4 class="fw-bold text-success my-1">₹<%= Number(summary.total_success).toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></h4>
+          <span class="badge bg-success-subtle text-success border border-success-subtle">SUCCESS Intakes</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-2">
+      <div class="card border-0 shadow-sm bg-white h-100">
+        <div class="card-body p-3">
+          <div class="text-muted small text-uppercase fw-semibold text-warning">Pending Amount</div>
+          <h4 class="fw-bold text-dark my-1">₹<%= Number(summary.total_pending).toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></h4>
+          <span class="badge bg-warning-subtle text-dark border">Pending Verification</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-2">
+      <div class="card border-0 shadow-sm bg-white h-100">
+        <div class="card-body p-3">
+          <div class="text-muted small text-uppercase fw-semibold text-danger">Failed Amount</div>
+          <h4 class="fw-bold text-danger my-1">₹<%= Number(summary.total_failed).toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></h4>
+          <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Failed Settlements</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm bg-white h-100">
+        <div class="card-body p-3">
+          <div class="text-muted small text-uppercase fw-semibold">Avg Settlement</div>
+          <h4 class="fw-bold text-dark my-1">₹<%= Number(summary.avg_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></h4>
+          <span class="badge bg-light text-secondary border">Per Transaction</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <div class="card border-0 shadow-sm bg-white mb-4">
+    <div class="card-header bg-white py-3">
+      <h5 class="card-title mb-0 fw-bold">Settlement Records (<%= payments.length %>)</h5>
+    </div>
+    <div class="card-body p-0">
+      <% if (payments.length === 0) { %>
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+          No payment records match the filter criteria.
+        </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-3">Receipt Ref</th>
+                <th>Booking & Guest</th>
+                <th>Room</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Status</th>
+                <th>Transaction ID</th>
+                <th>Settlement Time</th>
+                <th class="text-end pe-3">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% payments.forEach(p => { %>
+                <tr>
+                  <td class="ps-3 font-monospace fw-semibold"><%= p.payment_reference %></td>
+                  <td>
+                    <div class="fw-bold"><%= p.customer_name %></div>
+                    <small class="text-muted font-monospace"><%= p.booking_code %></small>
+                  </td>
+                  <td>Room <%= p.room_number %></td>
+                  <td class="fw-bold text-success">₹<%= Number(p.amount).toFixed(2) %></td>
+                  <td><span class="badge bg-light text-dark border"><%= p.payment_method %></span></td>
+                  <td>
+                    <% if (p.payment_status === 'SUCCESS') { %>
+                      <span class="badge bg-success">SUCCESS</span>
+                    <% } else if (p.payment_status === 'PENDING') { %>
+                      <span class="badge bg-warning text-dark">PENDING</span>
+                    <% } else { %>
+                      <span class="badge bg-danger">FAILED</span>
+                    <% } %>
+                  </td>
+                  <td class="small font-monospace text-muted"><%= p.transaction_id ? p.transaction_id : 'N/A' %></td>
+                  <td class="small text-muted"><%= p.payment_date %></td>
+                  <td class="text-end pe-3">
+                    <a href="/payments/<%= p.id %>/receipt" class="btn btn-outline-dark btn-sm">
+                      <i class="bi bi-printer me-1"></i>Receipt
+                    </a>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

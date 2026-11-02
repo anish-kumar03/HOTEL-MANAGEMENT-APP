@@ -5,11 +5,13 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 
 import { env } from './config/env.js';
-import homeRoutes from './routes/homeRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
 import customerRoutes from './routes/customerRoutes.js';
 import roomRoutes from './routes/roomRoutes.js';
 import reservationRoutes from './routes/reservationRoutes.js';
 import billingRoutes from './routes/billingRoutes.js';
+import reportRoutes from './routes/reportRoutes.js';
+import homeRoutes from './routes/homeRoutes.js';
 import { notFoundHandler, globalErrorHandler } from './middleware/errorHandler.js';
 
 // Resolve directory paths for ES Modules
@@ -71,11 +73,13 @@ app.set('views', path.join(__dirname, 'views'));
 // =============================================================================
 
 // Mount Application Routes
-app.use('/', homeRoutes);
+app.use('/', dashboardRoutes);
 app.use('/customers', customerRoutes);
 app.use('/rooms', roomRoutes);
 app.use('/reservations', reservationRoutes);
 app.use('/', billingRoutes);
+app.use('/reports', reportRoutes);
+app.use('/', homeRoutes);
 
 // =============================================================================
 // 5. CENTRALIZED ERROR HANDLING

@@ -1,0 +1,179 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="container-fluid px-lg-5 my-4">
+  <!-- Breadcrumb & Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="/"><i class="bi bi-house-door"></i> Home</a></li>
+        <li class="breadcrumb-item"><a href="/reports">Reports</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Customer Booking Report</li>
+      </ol>
+    </nav>
+    <div class="d-flex gap-2">
+      <button onclick="window.print()" class="btn btn-outline-secondary btn-sm px-3 shadow-sm">
+        <i class="bi bi-printer me-1"></i>Print Report
+      </button>
+      <a href="/reports" class="btn btn-outline-dark btn-sm px-3 shadow-sm">
+        <i class="bi bi-arrow-left me-1"></i>All Reports
+      </a>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm bg-white mb-4">
+    <div class="card-body p-4">
+      <div class="d-flex align-items-center gap-3">
+        <div class="p-3 bg-success-subtle text-success rounded-3">
+          <i class="bi bi-person-lines-fill fs-2"></i>
+        </div>
+        <div>
+          <h3 class="fw-bold text-dark mb-0">Customer Booking & Loyalty Report</h3>
+          <p class="text-muted small mb-0">Guest frequency, lifetime revenue contributions, repeat stay analysis, and customer history.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Toolbar -->
+  <div class="card border-0 shadow-sm bg-white mb-4">
+    <div class="card-body p-3">
+      <form action="/reports/customer-bookings" method="GET" class="row g-2 align-items-end">
+        <div class="col-sm-6 col-md-4">
+          <label class="form-label small fw-semibold text-muted mb-1">Search Guest</label>
+          <input type="text" name="search" class="form-control form-control-sm" placeholder="Search by name, email, or phone..." value="<%= filters.search %>">
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <label class="form-label small fw-semibold text-muted mb-1">Minimum Bookings</label>
+          <select name="minBookings" class="form-select form-select-sm">
+            <option value="0" <%= filters.minBookings == 0 ? 'selected' : '' %>>All Customers (>= 0)</option>
+            <option value="1" <%= filters.minBookings == 1 ? 'selected' : '' %>>At least 1 Booking (Active Guests)</option>
+            <option value="2" <%= filters.minBookings == 2 ? 'selected' : '' %>>Repeat Guests (>= 2 Bookings)</option>
+            <option value="5" <%= filters.minBookings == 5 ? 'selected' : '' %>>Frequent Travelers (>= 5 Bookings)</option>
+          </select>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <label class="form-label small fw-semibold text-muted mb-1">Sort Ordering</label>
+          <select name="sortBy" class="form-select form-select-sm">
+            <option value="spend_desc" <%= filters.sortBy === 'spend_desc' ? 'selected' : '' %>>Highest Lifetime Spend</option>
+            <option value="bookings_desc" <%= filters.sortBy === 'bookings_desc' ? 'selected' : '' %>>Most Total Bookings</option>
+            <option value="recent_first" <%= filters.sortBy === 'recent_first' ? 'selected' : '' %>>Most Recent Booking</option>
+            <option value="name_asc" <%= filters.sortBy === 'name_asc' ? 'selected' : '' %>>Guest Name (A &rarr; Z)</option>
+          </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+          <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-funnel me-1"></i>Filter</button>
+          <a href="/reports/customer-bookings" class="btn btn-light border btn-sm" title="Clear Filters"><i class="bi bi-x-circle"></i></a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Summary KPI Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm bg-white h-100">
+        <div class="card-body p-3">
+          <div class="text-muted small text-uppercase fw-semibold">Filtered Customers</div>
+          <h4 class="fw-bold text-dark my-1"><%= summary.totalCustomers %></h4>
+          <span class="badge bg-light text-secondary border">Profiles Evaluated</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm bg-white h-100">
+        <div class="card-body p-3">
+          <div class="text-muted small text-uppercase fw-semibold">Cumulative Bookings</div>
+          <h4 class="fw-bold text-primary my-1"><%= summary.totalBookings %></h4>
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Total Reservations</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm bg-white h-100">
+        <div class="card-body p-3">
+          <div class="text-muted small text-uppercase fw-semibold text-success">Total Lifetime Spend</div>
+          <h4 class="fw-bold text-success my-1">₹<%= Number(summary.totalSpend).toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></h4>
+          <span class="badge bg-success-subtle text-success border border-success-subtle">Non-Cancelled Sum</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm bg-white h-100">
+        <div class="card-body p-3">
+          <div class="text-muted small text-uppercase fw-semibold">Avg Spend / Guest</div>
+          <h4 class="fw-bold text-dark my-1">₹<%= Number(summary.avgSpendPerCustomer).toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></h4>
+          <span class="badge bg-light text-secondary border">ARPU (Per Customer)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <div class="card border-0 shadow-sm bg-white mb-4">
+    <div class="card-header bg-white py-3">
+      <h5 class="card-title mb-0 fw-bold">Customer Loyalty & Spend Analysis (<%= customers.length %>)</h5>
+    </div>
+    <div class="card-body p-0">
+      <% if (customers.length === 0) { %>
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-person-x fs-1 d-block mb-2"></i>
+          No customer records match the criteria.
+        </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-3">Guest Details</th>
+                <th>Registered</th>
+                <th>Total Bookings</th>
+                <th>Completed</th>
+                <th>Cancelled</th>
+                <th>Lifetime Spend</th>
+                <th>Avg Spend / Stay</th>
+                <th>Last Active Stay</th>
+                <th class="text-end pe-3">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% customers.forEach(c => { %>
+                <tr>
+                  <td class="ps-3">
+                    <div class="fw-bold text-dark"><%= c.name %></div>
+                    <div class="small text-muted"><i class="bi bi-envelope me-1"></i><%= c.email %></div>
+                    <div class="small text-muted"><i class="bi bi-telephone me-1"></i><%= c.phone %></div>
+                  </td>
+                  <td class="small text-muted"><%= c.registration_date %></td>
+                  <td>
+                    <span class="badge bg-primary fs-6"><%= c.total_reservations %></span>
+                  </td>
+                  <td>
+                    <span class="badge bg-success-subtle text-success"><%= c.completed_stays %></span>
+                  </td>
+                  <td>
+                    <span class="badge bg-danger-subtle text-danger"><%= c.cancelled_count %></span>
+                  </td>
+                  <td class="fw-bold text-success">
+                    ₹<%= Number(c.lifetime_spend).toLocaleString('en-IN', { minimumFractionDigits: 2 }) %>
+                  </td>
+                  <td>
+                    ₹<%= Number(c.avg_booking_spend).toLocaleString('en-IN', { minimumFractionDigits: 2 }) %>
+                  </td>
+                  <td class="small">
+                    <%= c.last_booking_date ? c.last_booking_date : '<span class="text-muted">None</span>' %>
+                  </td>
+                  <td class="text-end pe-3">
+                    <a href="/customers/<%= c.id %>" class="btn btn-outline-dark btn-sm">Profile</a>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

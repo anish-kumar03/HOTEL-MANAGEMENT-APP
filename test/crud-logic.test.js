@@ -13,6 +13,8 @@ import {
   generatePaymentReference,
   calculateBillTotals
 } from '../src/services/billingService.js';
+import * as dashboardService from '../src/services/dashboardService.js';
+import * as reportService from '../src/services/reportService.js';
 
 // =============================================================================
 // TEST SUITE 1: CUSTOMER VALIDATION LOGIC
@@ -437,6 +439,147 @@ test('Phase 6 Route Architecture - Verifies Payment Management, Record Payment, 
     const historyHtml = await historyRes.text();
     assert.ok(historyHtml.includes('Payment History'), 'Should render Payment History title');
     assert.ok(historyHtml.includes('Settlement Logs'), 'Should render Settlement Logs section');
+  } finally {
+    server.close();
+  }
+});
+
+// =============================================================================
+// TEST SUITE 9: PHASE 7 DASHBOARD DATA STRUCTURE & CHART.JS DATASETS
+// =============================================================================
+test('Phase 7 Dashboard Services - Validates 10 Real-time Stats and Chart.js Data Structures', async (t) => {
+  await t.test('Computes and exposes all 10 required Dashboard Statistics keys', async () => {
+    const stats = await dashboardService.getDashboardStatistics();
+    
+    const requiredStats = [
+      'totalRooms',
+      'activeRooms',
+      'currentlyOccupiedRooms',
+      'availableRoomsToday',
+      'totalRegisteredCustomers',
+      'totalReservations',
+      'todayCheckIns',
+      'todayCheckOuts',
+      'monthlyRevenue',
+      'pendingPaymentAmount'
+    ];
+
+    for (const key of requiredStats) {
+      assert.ok(key in stats, `Statistics key "${key}" must be defined`);
+      assert.equal(typeof stats[key], 'number', `Stat "${key}" must evaluate to a number`);
+      assert.ok(stats[key] >= 0, `Stat "${key}" must be non-negative`);
+    }
+  });
+
+  await t.test('Generates valid Chart.js data models for Revenue, Categories, and Bookings', async () => {
+    const charts = await dashboardService.getChartData();
+
+    // Chart 1: Monthly Revenue
+    assert.ok(charts.monthlyRevenueChart, 'monthlyRevenueChart must be provided');
+    assert.ok(Array.isArray(charts.monthlyRevenueChart.labels), 'monthlyRevenueChart labels must be an array');
+    assert.ok(Array.isArray(charts.monthlyRevenueChart.datasets), 'monthlyRevenueChart datasets must be an array');
+
+    // Chart 2: Room Category Distribution
+    assert.ok(charts.roomCategoryChart, 'roomCategoryChart must be provided');
+    assert.ok(Array.isArray(charts.roomCategoryChart.labels), 'roomCategoryChart labels must be an array');
+    assert.ok(Array.isArray(charts.roomCategoryChart.datasets), 'roomCategoryChart datasets must be an array');
+
+    // Chart 3: Monthly Reservations Lifecycle
+    assert.ok(charts.monthlyReservationsChart, 'monthlyReservationsChart must be provided');
+    assert.ok(Array.isArray(charts.monthlyReservationsChart.labels), 'monthlyReservationsChart labels must be an array');
+    assert.ok(Array.isArray(charts.monthlyReservationsChart.datasets), 'monthlyReservationsChart datasets must be an array');
+  });
+
+  await t.test('Exposes recent activity feeds for live dashboard widgets', async () => {
+    const activity = await dashboardService.getRecentActivity();
+    assert.ok(Array.isArray(activity.recentReservations), 'recentReservations must be an array');
+    assert.ok(Array.isArray(activity.recentPayments), 'recentPayments must be an array');
+  });
+});
+
+// =============================================================================
+// TEST SUITE 10: PHASE 7 ROUTE ARCHITECTURE - DASHBOARD & 7 REPORTS
+// =============================================================================
+test('Phase 7 Route Architecture - Verifies Executive Dashboard and All 7 Report Endpoints', async (t) => {
+  const server = app.listen(0);
+  const port = server.address().port;
+
+  try {
+    // 1. Test GET / (Admin Dashboard)
+    const dashboardRes = await fetch(`http://localhost:${port}/`);
+    assert.equal(dashboardRes.status, 200, 'GET / must return 200 OK');
+    const dashboardHtml = await dashboardRes.text();
+    assert.ok(dashboardHtml.includes('Executive Dashboard'), 'Should render Executive Dashboard title');
+    assert.ok(dashboardHtml.includes('1. Total Rooms'), 'Should render Total Rooms KPI');
+    assert.ok(dashboardHtml.includes('4. Available Today'), 'Should render Available Today KPI');
+    assert.ok(dashboardHtml.includes('9. Monthly Revenue'), 'Should render Monthly Revenue KPI');
+    assert.ok(dashboardHtml.includes('10. Pending Balance'), 'Should render Pending Balance KPI');
+    assert.ok(dashboardHtml.includes('monthlyRevenueChart'), 'Should include Chart.js canvas for Monthly Revenue');
+    assert.ok(dashboardHtml.includes('roomCategoryChart'), 'Should include Chart.js canvas for Room Categories');
+    assert.ok(dashboardHtml.includes('monthlyReservationsChart'), 'Should include Chart.js canvas for Monthly Reservations');
+
+    // 2. Test GET /api/dashboard/stats (JSON API for charts/telemetry)
+    const apiRes = await fetch(`http://localhost:${port}/api/dashboard/stats`);
+    assert.equal(apiRes.status, 200, 'GET /api/dashboard/stats must return 200 OK');
+    const apiJson = await apiRes.json();
+    assert.equal(apiJson.success, true);
+    assert.ok('stats' in apiJson);
+    assert.ok('charts' in apiJson);
+
+    // 3. Test GET /reports (Central Reports Portal)
+    const reportsRes = await fetch(`http://localhost:${port}/reports`);
+    assert.equal(reportsRes.status, 200, 'GET /reports must return 200 OK');
+    const reportsHtml = await reportsRes.text();
+    assert.ok(reportsHtml.includes('Reporting & Analytics Portal'), 'Should render Reports portal title');
+    assert.ok(reportsHtml.includes('1. Daily Reservation Report'), 'Should list Report 1');
+    assert.ok(reportsHtml.includes('2. Monthly Reservation Report'), 'Should list Report 2');
+    assert.ok(reportsHtml.includes('3. Customer Booking Report'), 'Should list Report 3');
+    assert.ok(reportsHtml.includes('4. Room Availability Report'), 'Should list Report 4');
+    assert.ok(reportsHtml.includes('5. Monthly Revenue Report'), 'Should list Report 5');
+    assert.ok(reportsHtml.includes('6. Payment History Report'), 'Should list Report 6');
+    assert.ok(reportsHtml.includes('7. Cancelled Bookings Report'), 'Should list Report 7');
+
+    // 4. Test GET /reports/daily-reservations (Report 1)
+    const r1Res = await fetch(`http://localhost:${port}/reports/daily-reservations`);
+    assert.equal(r1Res.status, 200, 'Report 1 must return 200 OK');
+    const r1Html = await r1Res.text();
+    assert.ok(r1Html.includes('Daily Reservation Report'));
+
+    // 5. Test GET /reports/monthly-reservations (Report 2)
+    const r2Res = await fetch(`http://localhost:${port}/reports/monthly-reservations`);
+    assert.equal(r2Res.status, 200, 'Report 2 must return 200 OK');
+    const r2Html = await r2Res.text();
+    assert.ok(r2Html.includes('Monthly Reservation Report'));
+
+    // 6. Test GET /reports/customer-bookings (Report 3)
+    const r3Res = await fetch(`http://localhost:${port}/reports/customer-bookings`);
+    assert.equal(r3Res.status, 200, 'Report 3 must return 200 OK');
+    const r3Html = await r3Res.text();
+    assert.ok(r3Html.includes('Customer Booking'));
+
+    // 7. Test GET /reports/room-availability (Report 4)
+    const r4Res = await fetch(`http://localhost:${port}/reports/room-availability`);
+    assert.equal(r4Res.status, 200, 'Report 4 must return 200 OK');
+    const r4Html = await r4Res.text();
+    assert.ok(r4Html.includes('Room Availability'));
+
+    // 8. Test GET /reports/monthly-revenue (Report 5)
+    const r5Res = await fetch(`http://localhost:${port}/reports/monthly-revenue`);
+    assert.equal(r5Res.status, 200, 'Report 5 must return 200 OK');
+    const r5Html = await r5Res.text();
+    assert.ok(r5Html.includes('Monthly Revenue'));
+
+    // 9. Test GET /reports/payment-history (Report 6)
+    const r6Res = await fetch(`http://localhost:${port}/reports/payment-history`);
+    assert.equal(r6Res.status, 200, 'Report 6 must return 200 OK');
+    const r6Html = await r6Res.text();
+    assert.ok(r6Html.includes('Payment History & Settlement Audit Report'));
+
+    // 10. Test GET /reports/cancelled-reservations (Report 7)
+    const r7Res = await fetch(`http://localhost:${port}/reports/cancelled-reservations`);
+    assert.equal(r7Res.status, 200, 'Report 7 must return 200 OK');
+    const r7Html = await r7Res.text();
+    assert.ok(r7Html.includes('Cancelled Reservation & Revenue Loss Audit'));
   } finally {
     server.close();
   }

@@ -1,0 +1,209 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="container my-5">
+  <%- include('../partials/alerts') %>
+
+  <!-- Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a href="/"><i class="bi bi-house-door"></i> Home</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Reports Catalog</li>
+        </ol>
+      </nav>
+      <h2 class="fw-bold mb-1 text-dark">
+        <i class="bi bi-file-earmark-bar-graph-fill text-primary me-2"></i>Executive Reporting & Analytics Portal
+      </h2>
+      <p class="text-muted mb-0">
+        Generate, inspect, filter, and print comprehensive operational, customer, occupancy, and financial reports from MySQL.
+      </p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="/" class="btn btn-outline-dark px-3">
+        <i class="bi bi-speedometer2 me-1"></i>Back to Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- The 7 Report Module Cards Grid -->
+  <div class="row g-4">
+    <!-- Report 1: Daily Reservation Report -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card border-0 shadow-sm h-100 bg-white">
+        <div class="card-body p-4 d-flex flex-column">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="p-3 bg-info-subtle text-info rounded-3">
+              <i class="bi bi-calendar2-day fs-3"></i>
+            </div>
+            <div>
+              <span class="badge bg-light text-secondary border mb-1">Operational</span>
+              <h5 class="card-title fw-bold mb-0">1. Daily Reservation Report</h5>
+            </div>
+          </div>
+          <p class="card-text text-muted small flex-grow-1">
+            Tracks individual room reservations for specific days or custom date ranges. Analyzes guest arrivals, departures, allocated room categories, and daily booking values.
+          </p>
+          <hr class="my-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="small text-muted"><i class="bi bi-funnel me-1"></i>Date, Status, Category</span>
+            <a href="/reports/daily-reservations" class="btn btn-sm btn-primary px-3">Open Report &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report 2: Monthly Reservation Report -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card border-0 shadow-sm h-100 bg-white">
+        <div class="card-body p-4 d-flex flex-column">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="p-3 bg-primary-subtle text-primary rounded-3">
+              <i class="bi bi-calendar2-month fs-3"></i>
+            </div>
+            <div>
+              <span class="badge bg-light text-secondary border mb-1">Analytics</span>
+              <h5 class="card-title fw-bold mb-0">2. Monthly Reservation Report</h5>
+            </div>
+          </div>
+          <p class="card-text text-muted small flex-grow-1">
+            Aggregates booking volumes across months of the year. Evaluates total nights stayed, average length of stay (ALOS), gross booking value, and monthly cancellation rates.
+          </p>
+          <hr class="my-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="small text-muted"><i class="bi bi-funnel me-1"></i>Year, Status, Category</span>
+            <a href="/reports/monthly-reservations" class="btn btn-sm btn-primary px-3">Open Report &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report 3: Customer Booking Report -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card border-0 shadow-sm h-100 bg-white">
+        <div class="card-body p-4 d-flex flex-column">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="p-3 bg-success-subtle text-success rounded-3">
+              <i class="bi bi-person-lines-fill fs-3"></i>
+            </div>
+            <div>
+              <span class="badge bg-light text-secondary border mb-1">CRM & Guests</span>
+              <h5 class="card-title fw-bold mb-0">3. Customer Booking Report</h5>
+            </div>
+          </div>
+          <p class="card-text text-muted small flex-grow-1">
+            Audits customer booking frequency, repeat guest tendencies, and lifetime guest revenue. Identify high-value guests, average spend per reservation, and stay histories.
+          </p>
+          <hr class="my-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="small text-muted"><i class="bi bi-funnel me-1"></i>Search, Min Bookings, Sort</span>
+            <a href="/reports/customer-bookings" class="btn btn-sm btn-primary px-3">Open Report &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report 4: Room Availability Report -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card border-0 shadow-sm h-100 bg-white">
+        <div class="card-body p-4 d-flex flex-column">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="p-3 bg-warning-subtle text-warning rounded-3">
+              <i class="bi bi-calendar-check fs-3"></i>
+            </div>
+            <div>
+              <span class="badge bg-light text-secondary border mb-1">Inventory</span>
+              <h5 class="card-title fw-bold mb-0">4. Room Availability Report</h5>
+            </div>
+          </div>
+          <p class="card-text text-muted small flex-grow-1">
+            Real-time physical inventory audit on any selected target date. Cross-references active bookings to categorize rooms as Available, Reserved, Occupied, or under Maintenance.
+          </p>
+          <hr class="my-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="small text-muted"><i class="bi bi-funnel me-1"></i>Target Date, Category, Status</span>
+            <a href="/reports/room-availability" class="btn btn-sm btn-primary px-3">Open Report &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report 5: Monthly Revenue Report -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card border-0 shadow-sm h-100 bg-white">
+        <div class="card-body p-4 d-flex flex-column">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="p-3 bg-success-subtle text-success rounded-3">
+              <i class="bi bi-graph-up-arrow fs-3"></i>
+            </div>
+            <div>
+              <span class="badge bg-light text-secondary border mb-1">Finance & Accounting</span>
+              <h5 class="card-title fw-bold mb-0">5. Monthly Revenue Report</h5>
+            </div>
+          </div>
+          <p class="card-text text-muted small flex-grow-1">
+            Detailed financial revenue audit broken down by month and payment channel (Cash, UPI, and Card). Computes average transaction sizes and total settlement intake.
+          </p>
+          <hr class="my-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="small text-muted"><i class="bi bi-funnel me-1"></i>Year, Method, Payment Status</span>
+            <a href="/reports/monthly-revenue" class="btn btn-sm btn-primary px-3">Open Report &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report 6: Payment History Report -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card border-0 shadow-sm h-100 bg-white">
+        <div class="card-body p-4 d-flex flex-column">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="p-3 bg-info-subtle text-info rounded-3">
+              <i class="bi bi-credit-card-2-back fs-3"></i>
+            </div>
+            <div>
+              <span class="badge bg-light text-secondary border mb-1">Audit Ledger</span>
+              <h5 class="card-title fw-bold mb-0">6. Payment History Report</h5>
+            </div>
+          </div>
+          <p class="card-text text-muted small flex-grow-1">
+            Complete settlement transaction audit log. Filter by date range, payment instrument, status (SUCCESS/PENDING/FAILED), and guest name or reference code.
+          </p>
+          <hr class="my-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="small text-muted"><i class="bi bi-funnel me-1"></i>Date Range, Method, Status</span>
+            <a href="/reports/payment-history" class="btn btn-sm btn-primary px-3">Open Report &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report 7: Cancelled Reservation Report -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card border-0 shadow-sm h-100 bg-white">
+        <div class="card-body p-4 d-flex flex-column">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="p-3 bg-danger-subtle text-danger rounded-3">
+              <i class="bi bi-x-circle fs-3"></i>
+            </div>
+            <div>
+              <span class="badge bg-light text-secondary border mb-1">Loss & Quality Audit</span>
+              <h5 class="card-title fw-bold mb-0">7. Cancelled Bookings Report</h5>
+            </div>
+          </div>
+          <p class="card-text text-muted small flex-grow-1">
+            Dedicated forensic view of cancelled bookings. Measures total lost revenue, cancellation rates against system bookings, and displays recorded cancellation reasons.
+          </p>
+          <hr class="my-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="small text-muted"><i class="bi bi-funnel me-1"></i>Date Range, Category, Search</span>
+            <a href="/reports/cancelled-reservations" class="btn btn-sm btn-primary px-3">Open Report &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

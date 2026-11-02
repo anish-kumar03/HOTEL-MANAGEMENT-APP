@@ -8,6 +8,8 @@ import * as customerService from '../src/services/customerService.js';
 import * as roomService from '../src/services/roomService.js';
 import * as reservationService from '../src/services/reservationService.js';
 import * as billingService from '../src/services/billingService.js';
+import * as dashboardService from '../src/services/dashboardService.js';
+import * as reportService from '../src/services/reportService.js';
 
 async function runE2ECrudTests() {
   console.log('='.repeat(70));
@@ -29,7 +31,7 @@ async function runE2ECrudTests() {
     // -------------------------------------------------------------------------
     // MODULE 1: CUSTOMER MANAGEMENT CRUD
     // -------------------------------------------------------------------------
-    console.log('--- [TEST 1/4] CUSTOMER MANAGEMENT CRUD ---');
+    console.log('--- [TEST 1/5] CUSTOMER MANAGEMENT CRUD ---');
 
     const testCustomerPayload = {
       name: 'Automated Test Guest',
@@ -63,7 +65,7 @@ async function runE2ECrudTests() {
     // -------------------------------------------------------------------------
     // MODULE 2: ROOM MANAGEMENT CRUD
     // -------------------------------------------------------------------------
-    console.log('--- [TEST 2/4] ROOM MANAGEMENT CRUD ---');
+    console.log('--- [TEST 2/5] ROOM MANAGEMENT CRUD ---');
 
     const testRoomNumber = `T${Math.floor(100 + Math.random() * 900)}`;
     const testRoomPayload = {
@@ -94,7 +96,7 @@ async function runE2ECrudTests() {
     // -------------------------------------------------------------------------
     // MODULE 3: RESERVATION MANAGEMENT & TRANSACTIONAL ENGINE
     // -------------------------------------------------------------------------
-    console.log('--- [TEST 3/4] RESERVATION MANAGEMENT & CONFLICT AVOIDANCE ---');
+    console.log('--- [TEST 3/5] RESERVATION MANAGEMENT & CONFLICT AVOIDANCE ---');
 
     const today = new Date();
     const inDate = new Date(today.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -142,7 +144,7 @@ async function runE2ECrudTests() {
     // -------------------------------------------------------------------------
     // MODULE 4: PAYMENT AND BILLING MANAGEMENT CRUD & TRANSACTIONS
     // -------------------------------------------------------------------------
-    console.log('--- [TEST 4/4] PAYMENT & BILLING TRANSACTIONS & SETTLEMENTS ---');
+    console.log('--- [TEST 4/5] PAYMENT & BILLING TRANSACTIONS & SETTLEMENTS ---');
 
     // 1. Add Additional Service Charge
     const serviceId = await billingService.addAdditionalService(booking.reservationId, {
@@ -207,8 +209,53 @@ async function runE2ECrudTests() {
     await reservationService.cancelReservation(booking.reservationId, 'Test teardown');
     console.log(`✔ 7. Cancellation: Successfully cancelled reservation and released room dates\n`);
 
+    // -------------------------------------------------------------------------
+    // MODULE 5: DASHBOARD & REPORTING AGGREGATE ENGINE (PHASE 7)
+    // -------------------------------------------------------------------------
+    console.log('--- [TEST 5/5] DASHBOARD & REPORTING AGGREGATE ENGINE ---');
+
+    // 1. Dashboard 10 Statistics
+    const stats = await dashboardService.getDashboardStatistics();
+    console.log(`✔ 1. Dashboard 10 Statistics:`);
+    console.log(`     - Total Rooms: ${stats.totalRooms}, Active: ${stats.activeRooms}, Occupied: ${stats.currentlyOccupiedRooms}, Available Today: ${stats.availableRoomsToday}`);
+    console.log(`     - Customers: ${stats.totalRegisteredCustomers}, Reservations: ${stats.totalReservations}`);
+    console.log(`     - Today Check-Ins: ${stats.todayCheckIns}, Check-Outs: ${stats.todayCheckOuts}`);
+    console.log(`     - Monthly Revenue: ₹${stats.monthlyRevenue}, Pending Receivables: ₹${stats.pendingPaymentAmount}`);
+
+    // 2. Chart.js Datasets
+    const charts = await dashboardService.getChartData();
+    console.log(`✔ 2. Chart.js Datasets: Generated ${charts.monthlyRevenueChart.labels.length} revenue intervals & ${charts.roomCategoryChart.labels.length} category sectors`);
+
+    // 3. Report 1: Daily Reservations
+    const r1 = await reportService.getDailyReservationReport();
+    console.log(`✔ 3. Report 1 (Daily Reservations): Fetched ${r1.records.length} records (Revenue: ₹${r1.summary.total_revenue})`);
+
+    // 4. Report 2: Monthly Reservations
+    const r2 = await reportService.getMonthlyReservationReport();
+    console.log(`✔ 4. Report 2 (Monthly Reservations): Fetched ${r2.monthlyData.length} monthly aggregate rows`);
+
+    // 5. Report 3: Customer Bookings
+    const r3 = await reportService.getCustomerBookingReport();
+    console.log(`✔ 5. Report 3 (Customer Bookings): Evaluated ${r3.customers.length} customer spend profiles`);
+
+    // 6. Report 4: Room Availability
+    const r4 = await reportService.getRoomAvailabilityReport();
+    console.log(`✔ 6. Report 4 (Room Availability): Analyzed ${r4.rooms.length} room inventory states (Available: ${r4.summary.availableRooms}, Occupancy: ${r4.summary.occupancyRate}%)`);
+
+    // 7. Report 5: Monthly Revenue
+    const r5 = await reportService.getMonthlyRevenueReport();
+    console.log(`✔ 7. Report 5 (Monthly Revenue): Computed ${r5.monthlyBreakdown.length} months breakdown (Gross: ₹${r5.summary.grandTotal})`);
+
+    // 8. Report 6: Payment History
+    const r6 = await reportService.getPaymentHistoryReport();
+    console.log(`✔ 8. Report 6 (Payment History): Loaded ${r6.payments.length} ledger transactions (Collected: ₹${r6.summary.total_success})`);
+
+    // 9. Report 7: Cancelled Reservations
+    const r7 = await reportService.getCancelledReservationReport();
+    console.log(`✔ 9. Report 7 (Cancelled Reservations): Audited ${r7.cancellations.length} cancellations (Lost Rev: ₹${r7.summary.total_lost_revenue})\n`);
+
     console.log('='.repeat(70));
-    console.log('🎉 ALL CRUD AND RESERVATION TESTS PASSED CLEANLY!');
+    console.log('🎉 ALL 5 MODULES & PHASE 7 OPERATIONS PASSED CLEANLY!');
     console.log('='.repeat(70));
   } catch (error) {
     console.error('❌ Live CRUD Test failed with error:', error);

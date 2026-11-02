@@ -65,32 +65,40 @@ HOTEL MANAGEMENT APP/
 │   │   ├── env.js                  # Centralized dotenv validation
 │   │   └── db.js                   # MySQL connection pool setup & health check
 │   ├── controllers/                # MVC Controller layer (HTTP orchestration)
-│   │   ├── homeController.js       # Homepage verification & health check logic
+│   │   ├── dashboardController.js  # Executive dashboard telemetry & charts
 │   │   ├── customerController.js   # Customer management operations
 │   │   ├── roomController.js       # Room inventory operations
 │   │   ├── reservationController.js# Reservation & availability engine
-│   │   └── billingController.js    # Payment settlements & billing invoices
+│   │   ├── billingController.js    # Payment settlements & billing invoices
+│   │   ├── reportController.js     # 7 Modular analytical & operational reports
+│   │   └── homeController.js       # System health check API & status
 │   ├── middleware/                 # Custom Express middlewares
 │   │   └── errorHandler.js         # Centralized 404 & 500 error handlers
 │   ├── routes/                     # Modular route declarations
-│   │   ├── homeRoutes.js           # Home (/) and health (/health) routes
+│   │   ├── dashboardRoutes.js      # Executive dashboard routes (/ and /dashboard)
 │   │   ├── customerRoutes.js       # Customer CRUD routes (/customers)
 │   │   ├── roomRoutes.js           # Room inventory routes (/rooms)
 │   │   ├── reservationRoutes.js    # Reservation routes (/reservations)
-│   │   └── billingRoutes.js        # Payment & invoice routes (/payments)
+│   │   ├── billingRoutes.js        # Payment & invoice routes (/payments)
+│   │   ├── reportRoutes.js         # 7 Comprehensive report routes (/reports)
+│   │   └── homeRoutes.js           # Health (/health) and status routes
 │   ├── services/                   # Business domain services (Transactional logic)
+│   │   ├── dashboardService.js     # 10 Real-time stats & Chart.js datasets
 │   │   ├── customerService.js      # Customer business logic & validations
 │   │   ├── roomService.js          # Room classification & pricing logic
 │   │   ├── reservationService.js   # Availability & SELECT FOR UPDATE transaction locking
-│   │   └── billingService.js       # Billing calculations, partial settlements & receipts
+│   │   ├── billingService.js       # Billing calculations, partial settlements & receipts
+│   │   └── reportService.js        # Aggregations, GROUP BY, and statistical queries
 │   ├── views/                      # EJS view templates
 │   │   ├── partials/               # Reusable headers, footers, alerts & navbar
+│   │   ├── dashboard/              # Dynamic admin operations dashboard
 │   │   ├── customers/              # Customer management views
 │   │   ├── rooms/                  # Room inventory views
 │   │   ├── reservations/           # Booking & availability views
 │   │   ├── payments/               # Payment directory, form, ledger & printable receipt
 │   │   ├── billing/                # Itemized reservation invoice & folio
-│   │   ├── index.ejs               # Verification homepage
+│   │   ├── reports/                # 7 Executive report views & central portal
+│   │   ├── index.ejs               # Foundation verification view
 │   │   └── error.ejs               # Centralized error page (404/500)
 │   ├── public/                     # Static files served directly
 │   │   ├── css/
@@ -100,8 +108,8 @@ HOTEL MANAGEMENT APP/
 │   ├── app.js                      # Express application pipeline configuration
 │   └── server.js                   # Application entry point & server listener
 ├── test/
-│   ├── crud-logic.test.js          # Node.js native test runner (42 automated unit & route tests)
-│   └── e2e-db-crud.js              # Live MySQL end-to-end multi-module CRUD test runner
+│   ├── crud-logic.test.js          # Node.js native test runner (47 automated unit & route tests)
+│   └── e2e-db-crud.js              # Live MySQL end-to-end 5-module CRUD test runner
 ├── .env.example                    # Environment variables template
 ├── .gitignore                      # Git exclusion rules
 ├── package.json                    # Project dependencies and npm scripts
@@ -192,10 +200,10 @@ npm start
 
 ### Running Test Suites
 ```bash
-# Run automated unit and route test suite (42 tests)
+# Run automated unit and route test suite (47 tests)
 npm test
 
-# Run live MySQL database E2E CRUD & transactional verification
+# Run live MySQL database E2E CRUD, transactional, and reporting verification
 node test/e2e-db-crud.js
 ```
 
@@ -205,7 +213,8 @@ node test/e2e-db-crud.js
 
 | Endpoint | Method | Expected Output | Purpose |
 | :--- | :---: | :--- | :--- |
-| `http://localhost:3000/` | `GET` | HTML (Status 200) | Verification Homepage displaying system status and module links. |
+| `http://localhost:3000/` | `GET` | HTML (Status 200) | Executive Admin Dashboard with 10 live KPI metrics & 3 Chart.js graphs. |
+| `http://localhost:3000/api/dashboard/stats` | `GET` | JSON (Status 200) | Telemetry endpoint returning real-time stats and Chart.js datasets. |
 | `http://localhost:3000/health` | `GET` | JSON (Status 200) | Health-check endpoint testing MySQL connection pool via `SELECT 1;`. |
 | `http://localhost:3000/customers` | `GET` | HTML (Status 200) | Customer directory with search and registration details. |
 | `http://localhost:3000/rooms` | `GET` | HTML (Status 200) | Physical room inventory with category & status filters. |
@@ -216,6 +225,14 @@ node test/e2e-db-crud.js
 | `http://localhost:3000/payments/history` | `GET` | HTML (Status 200) | Chronological payment audit ledger with method & status filters. |
 | `http://localhost:3000/reservations/:id/invoice` | `GET` | HTML (Status 200) | Itemized reservation folio with room charges & additional services. |
 | `http://localhost:3000/payments/:id/receipt` | `GET` | HTML (Status 200) | Printable official payment receipt with `@media print` layout. |
+| `http://localhost:3000/reports` | `GET` | HTML (Status 200) | Central Reporting & Analytics Portal with catalog of 7 reports. |
+| `http://localhost:3000/reports/daily-reservations` | `GET` | HTML (Status 200) | **Report 1:** Daily Reservation Report with date and status filters. |
+| `http://localhost:3000/reports/monthly-reservations` | `GET` | HTML (Status 200) | **Report 2:** Monthly Reservation Report with ALOS & cancellation rates. |
+| `http://localhost:3000/reports/customer-bookings` | `GET` | HTML (Status 200) | **Report 3:** Customer Booking Report with guest frequency & lifetime spend. |
+| `http://localhost:3000/reports/room-availability` | `GET` | HTML (Status 200) | **Report 4:** Room Availability Report for target date inventory audit. |
+| `http://localhost:3000/reports/monthly-revenue` | `GET` | HTML (Status 200) | **Report 5:** Monthly Revenue Report by payment channel (Cash, UPI, Card). |
+| `http://localhost:3000/reports/payment-history` | `GET` | HTML (Status 200) | **Report 6:** Payment History Report with multi-criteria search and filter. |
+| `http://localhost:3000/reports/cancelled-reservations` | `GET` | HTML (Status 200) | **Report 7:** Cancelled Reservation Report auditing lost tariff revenues. |
 
 ---
 

@@ -10,29 +10,45 @@
     <div class="collapse navbar-collapse" id="mainNavbar">
       <ul class="navbar-nav me-auto ms-lg-3">
         <li class="nav-item">
-          <a class="nav-link <%= typeof title !== 'undefined' && title.includes('Home') ? 'active' : '' %>" href="/">
-            <i class="bi bi-house-door me-1"></i>Home
+          <a class="nav-link <%= typeof title !== 'undefined' && (title.includes('Dashboard') || title.includes('Home')) ? 'active' : '' %>" href="/">
+            <i class="bi bi-speedometer2 me-1"></i>Dashboard
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link <%= typeof title !== 'undefined' && title.includes('Customer') ? 'active' : '' %>" href="/customers">
+          <a class="nav-link <%= typeof title !== 'undefined' && title.includes('Customer') && !title.includes('Report') ? 'active' : '' %>" href="/customers">
             <i class="bi bi-people-fill me-1"></i>Customers
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link <%= typeof title !== 'undefined' && title.includes('Room') ? 'active' : '' %>" href="/rooms">
+          <a class="nav-link <%= typeof title !== 'undefined' && title.includes('Room') && !title.includes('Report') ? 'active' : '' %>" href="/rooms">
             <i class="bi bi-door-open-fill me-1"></i>Rooms
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link <%= typeof title !== 'undefined' && title.includes('Reservation') || (typeof title !== 'undefined' && title.includes('Booking')) ? 'active' : '' %>" href="/reservations">
+          <a class="nav-link <%= typeof title !== 'undefined' && (title.includes('Reservation') || title.includes('Booking')) && !title.includes('Report') ? 'active' : '' %>" href="/reservations">
             <i class="bi bi-journal-bookmark-fill me-1"></i>Reservations
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link <%= typeof title !== 'undefined' && (title.includes('Payment') || title.includes('Billing') || title.includes('Invoice')) ? 'active' : '' %>" href="/payments">
+          <a class="nav-link <%= typeof title !== 'undefined' && (title.includes('Payment') || title.includes('Billing') || title.includes('Invoice')) && !title.includes('Report') ? 'active' : '' %>" href="/payments">
             <i class="bi bi-credit-card-fill me-1"></i>Payments & Billing
           </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle <%= typeof title !== 'undefined' && title.includes('Report') ? 'active' : '' %>" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-file-earmark-bar-graph-fill me-1"></i>Reports
+          </a>
+          <ul class="dropdown-menu dropdown-menu-dark shadow" aria-labelledby="reportsDropdown">
+            <li><a class="dropdown-item fw-bold" href="/reports"><i class="bi bi-grid-fill me-2 text-warning"></i>All Reports Portal</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="/reports/daily-reservations"><i class="bi bi-calendar2-day me-2 text-info"></i>1. Daily Reservations</a></li>
+            <li><a class="dropdown-item" href="/reports/monthly-reservations"><i class="bi bi-calendar2-month me-2 text-primary"></i>2. Monthly Reservations</a></li>
+            <li><a class="dropdown-item" href="/reports/customer-bookings"><i class="bi bi-person-lines-fill me-2 text-success"></i>3. Customer Bookings</a></li>
+            <li><a class="dropdown-item" href="/reports/room-availability"><i class="bi bi-calendar-check me-2 text-warning"></i>4. Room Availability</a></li>
+            <li><a class="dropdown-item" href="/reports/monthly-revenue"><i class="bi bi-graph-up-arrow me-2 text-success"></i>5. Monthly Revenue</a></li>
+            <li><a class="dropdown-item" href="/reports/payment-history"><i class="bi bi-credit-card-2-back me-2 text-info"></i>6. Payment History</a></li>
+            <li><a class="dropdown-item" href="/reports/cancelled-reservations"><i class="bi bi-x-circle me-2 text-danger"></i>7. Cancelled Reservations</a></li>
+          </ul>
         </li>
       </ul>
       <ul class="navbar-nav ms-auto align-items-center gap-2">
@@ -42,8 +58,8 @@
           </a>
         </li>
         <li class="nav-item ms-lg-2">
-          <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill">
-            <i class="bi bi-check-circle-fill me-1"></i>Phase 6 Active
+          <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill">
+            <i class="bi bi-check-circle-fill me-1"></i>Phase 7 Active
           </span>
         </li>
       </ul>
