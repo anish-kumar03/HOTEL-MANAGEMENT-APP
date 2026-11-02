@@ -174,3 +174,78 @@ CREATE TABLE IF NOT EXISTS `admin_users` (
   KEY `idx_admin_username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- =============================================================================
+-- STORED ROUTINES & TRIGGERS (Academic Implementation)
+-- =============================================================================
+
+-- -----------------------------------------------------------------------------
+-- 8. Stored Function: fn_calculate_stay_duration
+-- Calculates the billable stay duration in nights between two dates.
+-- -----------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS `fn_calculate_stay_duration`;
+DELIMITER //
+CREATE FUNCTION `fn_calculate_stay_duration`(
+  p_check_in DATE,
+  p_check_out DATE
+)
+RETURNS INT
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+  RETURN GREATEST(1, DATEDIFF(p_check_out, p_check_in));
+END //
+DELIMITER ;
+
+-- -----------------------------------------------------------------------------
+-- 9. Stored Procedure: sp_get_room_availability
+-- Retrieves ACTIVE rooms with sufficient capacity and no active conflicting bookings.
+-- -----------------------------------------------------------------------------
+DROP PROCEDURE IF EXISTS `sp_get_room_availability`;
+DELIMITER //
+CREATE PROCEDURE `sp_get_room_availability`(
+  IN p_check_in DATE,
+  IN p_check_out DATE,
+  IN p_guests INT
+)
+BEGIN
+  SELECT 
+    r.id,
+    r.room_number,
+    r.category,
+    r.capacity,
+    r.price_per_night,
+    r.status
+  FROM rooms r
+  WHERE r.status = 'ACTIVE'
+    AND r.capacity >= COALESCE(p_guests, 1)
+    AND r.id NOT IN (
+      SELECT res.room_id
+      FROM reservations res
+      WHERE res.status IN ('pending', 'confirmed', 'checked_in')
+        AND res.check_in_date < p_check_out
+        AND res.check_out_date > p_check_in
+    )
+  ORDER BY r.category ASC, r.room_number ASC;
+END //
+DELIMITER ;
+
+-- -----------------------------------------------------------------------------
+-- 10. Audit Trigger: trg_reservations_status_audit
+-- Automatically logs status transitions in reservation_status_history table.
+-- -----------------------------------------------------------------------------
+DROP TRIGGER IF EXISTS `trg_reservations_status_audit`;
+DELIMITER //
+CREATE TRIGGER `trg_reservations_status_audit`
+AFTER UPDATE ON `reservations`
+FOR EACH ROW
+BEGIN
+  IF OLD.status != NEW.status THEN
+    INSERT INTO `reservation_status_history`
+      (`reservation_id`, `previous_status`, `new_status`, `change_timestamp`, `remarks`)
+    VALUES
+      (NEW.id, OLD.status, NEW.status, NOW(), CONCAT('Automated trigger: Status changed from ', OLD.status, ' to ', NEW.status));
+  END IF;
+END //
+DELIMITER ;
+
+

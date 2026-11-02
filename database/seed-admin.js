@@ -104,3 +104,4 @@ async function setupAdministrator() {
 
 // Execute setup
 setupAdministrator();
+

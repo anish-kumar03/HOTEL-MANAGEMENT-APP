@@ -87,14 +87,19 @@ HOTEL MANAGEMENT APP/
 ├── docs/                           # Architecture & MCA Academic Documentation
 │   ├── PROJECT_PLAN.md             # Project requirements, scope & RTM
 │   ├── ARCHITECTURE.md             # Layered MVC, routing catalog & sequence diagrams
+│   ├── PROJECT_WORKFLOW.md         # Detailed Mermaid sequence and state workflows
 │   ├── DATABASE_DESIGN.md          # 3NF normalization analysis & schema specs
+│   ├── DATABASE_DOCUMENTATION.md   # Data dictionary, constraints, routines & triggers
 │   ├── ER_DIAGRAM.md               # Mermaid ER diagram & relational integrity rules
+│   ├── TEST_CASES.md               # Comprehensive 77-test validation matrix
+│   ├── PROJECT_SETUP.md            # Complete step-by-step installation manual
 │   └── DEVELOPMENT_ROADMAP.md      # Milestone roadmap & acceptance gates
 ├── src/
 │   ├── config/                     # Configuration modules
 │   │   ├── env.js                  # Centralized dotenv validation
 │   │   └── db.js                   # MySQL connection pool setup & health check
 │   ├── controllers/                # MVC Controller layer (HTTP orchestration)
+│   │   ├── authController.js       # Admin authentication, login & session termination
 │   │   ├── dashboardController.js  # Executive dashboard telemetry & charts
 │   │   ├── customerController.js   # Customer management operations
 │   │   ├── roomController.js       # Room inventory operations
@@ -103,8 +108,10 @@ HOTEL MANAGEMENT APP/
 │   │   ├── reportController.js     # 7 Modular analytical & operational reports
 │   │   └── homeController.js       # System health check API & status
 │   ├── middleware/                 # Custom Express middlewares
+│   │   ├── authMiddleware.js       # Session authentication & requireAuth guards
 │   │   └── errorHandler.js         # Centralized 404 & 500 error handlers
 │   ├── routes/                     # Modular route declarations
+│   │   ├── authRoutes.js           # Authentication endpoints (/login, /logout)
 │   │   ├── dashboardRoutes.js      # Executive dashboard routes (/ and /dashboard)
 │   │   ├── customerRoutes.js       # Customer CRUD routes (/customers)
 │   │   ├── roomRoutes.js           # Room inventory routes (/rooms)
@@ -113,6 +120,7 @@ HOTEL MANAGEMENT APP/
 │   │   ├── reportRoutes.js         # 7 Comprehensive report routes (/reports)
 │   │   └── homeRoutes.js           # Health (/health) and status routes
 │   ├── services/                   # Business domain services (Transactional logic)
+│   │   ├── authService.js          # Bcrypt hashing, admin lookup & credential check
 │   │   ├── dashboardService.js     # 10 Real-time stats & Chart.js datasets
 │   │   ├── customerService.js      # Customer business logic & validations
 │   │   ├── roomService.js          # Room classification & pricing logic
@@ -120,6 +128,7 @@ HOTEL MANAGEMENT APP/
 │   │   ├── billingService.js       # Billing calculations, partial settlements & receipts
 │   │   └── reportService.js        # Aggregations, GROUP BY, and statistical queries
 │   ├── views/                      # EJS view templates
+│   │   ├── auth/                   # Standalone administrator login view
 │   │   ├── partials/               # Reusable headers, footers, alerts & navbar
 │   │   ├── dashboard/              # Dynamic admin operations dashboard
 │   │   ├── customers/              # Customer management views
@@ -138,8 +147,9 @@ HOTEL MANAGEMENT APP/
 │   ├── app.js                      # Express application pipeline configuration
 │   └── server.js                   # Application entry point & server listener
 ├── test/
+│   ├── auth-security.test.js       # Native test runner for Phase 9 authentication & security
 │   ├── crud-logic.test.js          # Node.js native test runner (47 automated unit & route tests)
-│   └── e2e-db-crud.js              # Live MySQL end-to-end 5-module CRUD test runner
+│   └── e2e-db-crud.js              # Live MySQL end-to-end 6-module CRUD test runner
 ├── .env.example                    # Environment variables template
 ├── .gitignore                      # Git exclusion rules
 ├── package.json                    # Project dependencies and npm scripts
@@ -275,9 +285,13 @@ npm run seed:admin
 ## 📚 Architecture & Documentation
 
 Comprehensive architectural and engineering documentation is available in `docs/`:
-- **[PROJECT_PLAN.md](docs/PROJECT_PLAN.md)**: Full requirements breakdown and RTM.
+- **[PROJECT_PLAN.md](docs/PROJECT_PLAN.md)**: Full requirements breakdown, scope, and Requirement Traceability Matrix (RTM).
 - **[ARCHITECTURE.md](docs/ARCHITECTURE.md)**: Detailed MVC architecture, routing table, and security design.
+- **[PROJECT_WORKFLOW.md](docs/PROJECT_WORKFLOW.md)**: End-to-end Mermaid sequence diagrams, state machines, and business workflows.
 - **[DATABASE_DESIGN.md](docs/DATABASE_DESIGN.md)**: 3NF normalization analysis, entity specifications, and indexes.
+- **[DATABASE_DOCUMENTATION.md](docs/DATABASE_DOCUMENTATION.md)**: Data dictionary, constraint catalog, triggers, stored procedures, and functions.
 - **[ER_DIAGRAM.md](docs/ER_DIAGRAM.md)**: Complete Mermaid ER diagram and mathematical invariants.
+- **[TEST_CASES.md](docs/TEST_CASES.md)**: Comprehensive 77-test validation matrix across all 10 modules.
+- **[PROJECT_SETUP.md](docs/PROJECT_SETUP.md)**: Complete step-by-step installation, MySQL configuration, and execution guide.
 - **[DEVELOPMENT_ROADMAP.md](docs/DEVELOPMENT_ROADMAP.md)**: Milestone plans and acceptance gates for all phases.
 
