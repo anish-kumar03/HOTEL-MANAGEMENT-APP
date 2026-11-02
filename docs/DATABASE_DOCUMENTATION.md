@@ -249,56 +249,49 @@ Administrator accounts with bcrypt salted password hashes.
 
 ---
 
-## 5. Stored Routines & Triggers
+## 5. Stored Routines, Cursors & Triggers (`database/routines.sql`)
 
-### 5.1 Stored Function: `fn_calculate_stay_duration`
-```sql
-CREATE FUNCTION `fn_calculate_stay_duration`(p_check_in DATE, p_check_out DATE)
-RETURNS INT
-DETERMINISTIC
-READS SQL DATA
-BEGIN
-  RETURN GREATEST(1, DATEDIFF(p_check_out, p_check_in));
-END;
-```
+The project includes a comprehensive stored database programming module in [`database/routines.sql`](../database/routines.sql):
 
-### 5.2 Stored Procedure: `sp_get_room_availability`
-```sql
-CREATE PROCEDURE `sp_get_room_availability`(
-  IN p_check_in DATE,
-  IN p_check_out DATE,
-  IN p_guests INT
-)
-BEGIN
-  SELECT r.id, r.room_number, r.category, r.capacity, r.price_per_night, r.status
-  FROM rooms r
-  WHERE r.status = 'ACTIVE'
-    AND r.capacity >= COALESCE(p_guests, 1)
-    AND r.id NOT IN (
-      SELECT res.room_id
-      FROM reservations res
-      WHERE res.status IN ('pending', 'confirmed', 'checked_in')
-        AND res.check_in_date < p_check_out
-        AND res.check_out_date > p_check_in
-    )
-  ORDER BY r.category ASC, r.room_number ASC;
-END;
-```
+### 5.1 Stored Functions
+- **`fn_calculate_nights(p_check_in, p_check_out)`**:
+  Computes elapsed calendar nights between dates. Returns `0` if dates are invalid or inverted.
+- **`fn_calculate_booking_amount(p_nights, p_nightly_rate)`**:
+  Multiplies stay duration by nightly tariff snapshot, returning `DECIMAL(10,2)` (returns `0.00` for non-positive nights or rates).
 
-### 5.3 Audit Trigger: `trg_reservations_status_audit`
-```sql
-CREATE TRIGGER `trg_reservations_status_audit`
-AFTER UPDATE ON `reservations`
-FOR EACH ROW
-BEGIN
-  IF OLD.status != NEW.status THEN
-    INSERT INTO `reservation_status_history`
-      (`reservation_id`, `previous_status`, `new_status`, `change_timestamp`, `remarks`)
-    VALUES
-      (NEW.id, OLD.status, NEW.status, NOW(), CONCAT('Automated trigger: Status changed from ', OLD.status, ' to ', NEW.status));
-  END IF;
-END;
-```
+### 5.2 Database Views
+- **`vw_reservation_details`**:
+  Denormalized view joining reservations, customers, and rooms. Exposes full guest contact info, room attributes, nights duration, and booking status.
+- **`vw_payment_summary`**:
+  Aggregates room charges, incidental service charges, gross bill amounts, total successful settlements, remaining balance, and classifies billing status (`PAID`, `PARTIALLY_PAID`, `UNPAID`).
+
+### 5.3 Stored Procedures
+- **`sp_get_available_rooms(p_check_in, p_check_out, p_guests)`**:
+  Discovers active rooms with sufficient capacity and zero active booking overlaps for the specified calendar window.
+- **`sp_get_monthly_revenue(p_year)`**:
+  Aggregates monthly financial collections categorized across CASH, UPI, and CARD channels for a given calendar year.
+- **`sp_generate_reservation_report(p_start_date, p_end_date, p_status)`**:
+  Generates a filtered operational reservation roster across custom date windows and booking statuses.
+
+### 5.4 Database Trigger
+- **`trg_reservations_status_change`**:
+  Fires `AFTER UPDATE ON reservations FOR EACH ROW`. Automatically logs previous and new status into `reservation_status_history` with automated change timestamps and transition remarks.
+
+### 5.5 Explicit Cursor with NOT FOUND Handler
+- **`sp_identify_overdue_checkouts()`**:
+  Declares an explicit cursor `cur_overdue` traversing checked-in guests whose departure date has passed (`check_out_date < CURDATE()`).
+  Uses `DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_done = 1;` to gracefully terminate loop traversal.
+  Computes individual outstanding balances and populates a temporary table `tmp_overdue_checkouts` with recommended front-desk actions based on overdue days.
+
+### 5.6 ACID Transactional Procedure with Exception Handling
+- **`sp_create_reservation_transactional(...)`**:
+  Demonstrates atomic room reservation directly in MySQL:
+  - `DECLARE EXIT HANDLER FOR SQLEXCEPTION`: Automatically rolls back all changes on database failure and sets error message with SQLSTATE diagnostics.
+  - `START TRANSACTION`: Initiates atomic boundary.
+  - `SELECT ... FOR UPDATE`: Locks room row to eliminate race conditions.
+  - Checks overlap conflict, computes nights and totals via stored functions.
+  - Inserts booking and initial status history.
+  - `COMMIT`: Finalizes transaction and releases locks.
 
 ---
 
@@ -326,3 +319,4 @@ INSERT INTO reservations (...) VALUES (...);
 COMMIT;
 ```
 If an error or conflict occurs at any point, `connection.rollback()` is executed and the connection is guaranteed to be released back to the pool in a `finally` block.
+

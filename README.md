@@ -11,6 +11,7 @@
 - [Prerequisites](#-prerequisites)
 - [Installation & Setup](#-installation--setup)
 - [Database Configuration](#-database-configuration)
+- [MySQL Stored Programming Module](#-mysql-84-database-programming-module)
 - [Running the Application](#-running-the-application)
 - [Verification & Endpoints](#-verification--endpoints)
 - [Architecture & Documentation](#-architecture--documentation)
@@ -83,7 +84,9 @@ The application features a complete redesign engineered for luxury hospitality a
 HOTEL MANAGEMENT APP/
 ├── database/                       # Database DDL migration and seed scripts
 │   ├── schema.sql                  # Production MySQL 8.4 DDL script (tables & constraints)
-│   └── seed.sql                    # Realistic sample data (customers, rooms, bookings, payments)
+│   ├── seed.sql                    # Realistic sample data (customers, rooms, bookings, payments)
+│   ├── routines.sql                # MySQL 8.4 Stored Procedures, Functions, Triggers, Views & Cursors
+│   └── seed-admin.js               # CLI administrator seeding script (bcrypt hash)
 ├── docs/                           # Architecture & MCA Academic Documentation
 │   ├── PROJECT_PLAN.md             # Project requirements, scope & RTM
 │   ├── ARCHITECTURE.md             # Layered MVC, routing catalog & sequence diagrams
@@ -148,7 +151,8 @@ HOTEL MANAGEMENT APP/
 │   └── server.js                   # Application entry point & server listener
 ├── test/
 │   ├── auth-security.test.js       # Native test runner for Phase 9 authentication & security
-│   ├── crud-logic.test.js          # Node.js native test runner (47 automated unit & route tests)
+│   ├── crud-logic.test.js          # Node.js native test runner (unit, route & controller tests)
+│   ├── database-routines.test.js   # Structural, invariant, & MySQL 8.4 stored routine test suite
 │   └── e2e-db-crud.js              # Live MySQL end-to-end 6-module CRUD test runner
 ├── .env.example                    # Environment variables template
 ├── .gitignore                      # Git exclusion rules
@@ -212,17 +216,83 @@ DB_CONNECTION_LIMIT=10
 
 ## 🗄️ Database Configuration
 
-Initialize the database schema and sample seed records using MySQL Workbench or the MySQL CLI:
+Initialize the database schema, sample seed records, and stored programming routines using MySQL Workbench or the MySQL CLI:
 
 ```bash
-# 1. Execute DDL Schema (creates tables, foreign keys, and indexes)
+# 1. Execute DDL Schema (creates database, tables, foreign keys, and indexes)
 mysql -u root -p < database/schema.sql
 
 # 2. Execute Sample Seed Data (10 customers, 15 rooms, bookings, payments, services)
 mysql -u root -p < database/seed.sql
+
+# 3. Execute Stored Procedures, Functions, Triggers, Views & Cursors
+mysql -u root -p hotel_reservation_db < database/routines.sql
 ```
 
-This creates and populates the database `hotel_reservation_db` with all relational tables, indexes, and InnoDB foreign key constraints.
+This creates and populates the database `hotel_reservation_db` with all relational tables, indexes, InnoDB foreign key constraints, and stored program routines.
+
+---
+
+## ⚡ MySQL 8.4 Database Programming Module
+
+To satisfy MCA Database Management System subject requirements, the system implements an enterprise-grade MySQL stored-program module in [`database/routines.sql`](file:///database/routines.sql) conforming strictly to **MySQL 8.4 LTS** syntax:
+
+### 1. Stored Functions
+- **`fn_calculate_nights(p_check_in DATE, p_check_out DATE) RETURNS INT`**: Deterministic scalar function returning the exact number of nights between check-in and check-out (`DATEDIFF`). Enforces positive values (`MAX(1, DATEDIFF)`).
+- **`fn_calculate_booking_amount(p_room_id INT, p_check_in DATE, p_check_out DATE) RETURNS DECIMAL(10,2)`**: Queries the active nightly rate from `rooms` and returns total room tariff (`nights * price_per_night`).
+
+### 2. Relational Database Views
+- **`vw_reservation_details`**: Comprehensive 10-column denormalized view joining `reservations`, `customers`, and `rooms`. Includes formatted dates, calculated stay duration, operational room details, and real-time total paid balance and remaining balance.
+- **`vw_payment_summary`**: Financial reconciliation view aggregating total successful collections, pending balances, transaction counts, and settlement timestamps per reservation.
+
+### 3. Stored Procedures
+- **`sp_get_available_rooms(p_check_in DATE, p_check_out DATE, p_category VARCHAR(50))`**: Executes high-performance non-overlapping room availability discovery using the inverted interval algorithm:
+  ```sql
+  NOT EXISTS (
+    SELECT 1 FROM reservations res
+    WHERE res.room_id = r.id
+      AND res.status IN ('confirmed', 'checked_in')
+      AND res.check_in_date < p_check_out
+      AND res.check_out_date > p_check_in
+  )
+  ```
+- **`sp_get_monthly_revenue(p_year INT)`**: Aggregates verified payment collections month-by-month for a target calendar year with payment method breakdown (Cash, Card, UPI).
+- **`sp_generate_reservation_report(p_start_date DATE, p_end_date DATE, p_status VARCHAR(20))`**: Generates operational reservation audit tables with customer demographics, room information, and financial reconciliation.
+- **`sp_create_reservation_transactional(...)`**: Full ACID transaction demonstration with `DECLARE EXIT HANDLER FOR SQLEXCEPTION`, `START TRANSACTION`, row-level locking (`SELECT ... FOR UPDATE`), double-booking prevention, total computation, and audit logging.
+
+### 4. Explicit Cursor with NOT FOUND Handler
+- **`sp_identify_overdue_checkouts(p_reference_date DATE)`**: Stored procedure declaring an explicit cursor (`DECLARE cur_overdue CURSOR FOR ...`) and a standard `DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_done = 1;` loop. Iterates row-by-row over guests still in `checked_in` status whose scheduled `check_out_date < p_reference_date`, computes days overdue, checks uncollected balances, and logs alerts into `tmp_overdue_checkouts`.
+
+### 5. Audit Logging Trigger
+- **`trg_reservations_status_change`**: `AFTER UPDATE ON reservations FOR EACH ROW`. Fires automatically when `OLD.status <> NEW.status` and logs audit trail records (`reservation_id`, `old_status`, `new_status`, `changed_at`, `remarks`) directly into `reservation_status_history`.
+
+### 6. Interactive MySQL Workbench Execution Examples
+```sql
+USE hotel_reservation_db;
+
+-- 1. Test Stored Functions
+SELECT fn_calculate_nights('2026-12-01', '2026-12-05') AS stay_nights;
+SELECT fn_calculate_booking_amount(1, '2026-12-01', '2026-12-05') AS estimated_tariff;
+
+-- 2. Query Views
+SELECT * FROM vw_reservation_details LIMIT 5;
+SELECT * FROM vw_payment_summary WHERE balance_due > 0;
+
+-- 3. Execute Stored Procedures
+CALL sp_get_available_rooms('2026-12-10', '2026-12-15', NULL);
+CALL sp_get_monthly_revenue(2026);
+CALL sp_generate_reservation_report('2026-01-01', '2026-12-31', 'ALL');
+
+-- 4. Test Overdue Cursor
+CALL sp_identify_overdue_checkouts(CURRENT_DATE());
+
+-- 5. Test ACID Transactional Procedure
+CALL sp_create_reservation_transactional(
+    1, 2, '2026-12-20', '2026-12-25', 2, 'Admin Console',
+    @new_booking_id, @new_booking_code, @return_status, @return_message
+);
+SELECT @new_booking_id, @new_booking_code, @return_status, @return_message;
+```
 
 ---
 
@@ -240,7 +310,7 @@ npm start
 
 ### Running Test Suites
 ```bash
-# Run automated unit, route, and authentication test suite (77 tests)
+# Run automated unit, route, security, and stored routine test suite (90 tests)
 npm test
 
 # Run live MySQL database E2E CRUD, transactional, reporting, and auth verification

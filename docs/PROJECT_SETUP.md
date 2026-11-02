@@ -192,3 +192,4 @@ node test/e2e-db-crud.js
 
 ### Q: How do I test unauthenticated access?
 **A:** Open an Incognito / Private browsing window and navigate to `http://localhost:3000/customers`. The system will automatically redirect you to `/login?error=unauthorized`.
+

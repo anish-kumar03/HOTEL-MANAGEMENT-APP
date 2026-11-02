@@ -161,3 +161,4 @@ Existing Booking: **2026-11-10 (Check-in)** to **2026-11-15 (Check-out)**
 | **TC-REP-05** | Monthly Revenue Report | `/reports/monthly-revenue` | Year selector, Cash vs. UPI vs. Card breakdown, average transaction value | **PASS** |
 | **TC-REP-06** | Payment History Report | `/reports/payment-history` | Method & status filters, search voucher ID, chronological settlement ledger | **PASS** |
 | **TC-REP-07** | Cancelled Reservation Report | `/reports/cancelled-reservations` | Audit of cancelled bookings, cancellation reason, lost tariff revenue quantification | **PASS** |
+
