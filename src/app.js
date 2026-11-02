@@ -3,8 +3,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import session from 'express-session';
 
 import { env } from './config/env.js';
+import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import customerRoutes from './routes/customerRoutes.js';
 import roomRoutes from './routes/roomRoutes.js';
@@ -12,6 +14,7 @@ import reservationRoutes from './routes/reservationRoutes.js';
 import billingRoutes from './routes/billingRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 import homeRoutes from './routes/homeRoutes.js';
+import { requireAuth, authContext } from './middleware/authMiddleware.js';
 import { notFoundHandler, globalErrorHandler } from './middleware/errorHandler.js';
 
 // Resolve directory paths for ES Modules
@@ -62,27 +65,55 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // =============================================================================
-// 3. VIEW ENGINE CONFIGURATION (EJS)
+// 3. SESSION MANAGEMENT & AUTHENTICATION CONTEXT
+// =============================================================================
+
+// Configure express-session with secure cookie settings
+app.use(
+  session({
+    name: 'hrms_session_id',
+    secret: env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: env.isProduction,
+      sameSite: 'lax',
+      maxAge: 1000 * 60 * 60 * 24 // 24-hour administrator session
+    }
+  })
+);
+
+// Inject current authenticated administrator and metadata into template locals
+app.use(authContext);
+
+// =============================================================================
+// 4. VIEW ENGINE CONFIGURATION (EJS)
 // =============================================================================
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 // =============================================================================
-// 4. ROUTE MOUNTING
+// 5. ROUTE MOUNTING
 // =============================================================================
 
-// Mount Application Routes
-app.use('/', dashboardRoutes);
-app.use('/customers', customerRoutes);
-app.use('/rooms', roomRoutes);
-app.use('/reservations', reservationRoutes);
-app.use('/', billingRoutes);
-app.use('/reports', reportRoutes);
+// Public Authentication Routes (/login, /logout)
+app.use('/', authRoutes);
+
+// Public System Health API Monitoring (/health)
 app.use('/', homeRoutes);
 
+// Protected Administrative Operations (Enforce Session Authentication)
+app.use('/', requireAuth, dashboardRoutes);
+app.use('/customers', requireAuth, customerRoutes);
+app.use('/rooms', requireAuth, roomRoutes);
+app.use('/reservations', requireAuth, reservationRoutes);
+app.use('/', requireAuth, billingRoutes);
+app.use('/reports', requireAuth, reportRoutes);
+
 // =============================================================================
-// 5. CENTRALIZED ERROR HANDLING
+// 6. CENTRALIZED ERROR HANDLING
 // =============================================================================
 
 // 404 Not Found Catch-All
@@ -92,4 +123,3 @@ app.use(notFoundHandler);
 app.use(globalErrorHandler);
 
 export default app;
-

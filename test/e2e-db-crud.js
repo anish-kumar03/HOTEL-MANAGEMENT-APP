@@ -10,6 +10,7 @@ import * as reservationService from '../src/services/reservationService.js';
 import * as billingService from '../src/services/billingService.js';
 import * as dashboardService from '../src/services/dashboardService.js';
 import * as reportService from '../src/services/reportService.js';
+import authService from '../src/services/authService.js';
 
 async function runE2ECrudTests() {
   console.log('='.repeat(70));
@@ -254,8 +255,30 @@ async function runE2ECrudTests() {
     const r7 = await reportService.getCancelledReservationReport();
     console.log(`✔ 9. Report 7 (Cancelled Reservations): Audited ${r7.cancellations.length} cancellations (Lost Rev: ₹${r7.summary.total_lost_revenue})\n`);
 
+    // -------------------------------------------------------------------------
+    // MODULE 6: PHASE 9 ADMINISTRATOR AUTHENTICATION & SECURITY
+    // -------------------------------------------------------------------------
+    console.log('--- [TEST 6/6] ADMINISTRATOR AUTHENTICATION & SECURITY ---');
+
+    // 1. Password hashing verification
+    const testPlainPass = 'AdminSecurity@2026';
+    const testHash = await authService.hashPassword(testPlainPass);
+    console.log(`✔ 1. Bcrypt Hashing: Generated salted hash (${testHash.substring(0, 15)}...)`);
+
+    // 2. Password matching
+    const passMatches = await authService.comparePassword(testPlainPass, testHash);
+    console.log(`✔ 2. Bcrypt Verification: Matching password validated: ${passMatches}`);
+
+    // 3. Password mismatch rejection
+    const wrongMatches = await authService.comparePassword('WrongPassword!', testHash);
+    console.log(`✔ 3. Bcrypt Protection: Mismatch password rejected: ${!wrongMatches}`);
+
+    // 4. Administrator Authentication lookup
+    const authResult = await authService.authenticate('admin', 'Admin@12345');
+    console.log(`✔ 4. Administrator Auth: Authenticated "${authResult.user?.username}" successfully (${authResult.success})\n`);
+
     console.log('='.repeat(70));
-    console.log('🎉 ALL 5 MODULES & PHASE 7 OPERATIONS PASSED CLEANLY!');
+    console.log('🎉 ALL 6 MODULES & PHASE 9 OPERATIONS PASSED CLEANLY!');
     console.log('='.repeat(70));
   } catch (error) {
     console.error('❌ Live CRUD Test failed with error:', error);

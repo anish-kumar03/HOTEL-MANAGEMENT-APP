@@ -20,6 +20,7 @@ DROP TABLE IF EXISTS `payments`;
 DROP TABLE IF EXISTS `reservations`;
 DROP TABLE IF EXISTS `rooms`;
 DROP TABLE IF EXISTS `customers`;
+DROP TABLE IF EXISTS `admin_users`;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -156,3 +157,20 @@ CREATE TABLE IF NOT EXISTS `reservation_services` (
     REFERENCES `reservations` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `chk_service_amount` CHECK (`amount` >= 0.00)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- 7. Table: admin_users
+-- Stores administrator user credentials: username, email, and bcrypt password hash.
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `admin_users` (
+  `admin_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `username` VARCHAR(50) NOT NULL,
+  `email` VARCHAR(100) NOT NULL,
+  `password_hash` VARCHAR(255) NOT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`admin_id`),
+  UNIQUE KEY `uq_admin_username` (`username`),
+  UNIQUE KEY `uq_admin_email` (`email`),
+  KEY `idx_admin_username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

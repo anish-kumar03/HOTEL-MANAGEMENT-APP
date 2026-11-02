@@ -42,7 +42,15 @@ function validateRoomData({ room_number, category, capacity, price_per_night, st
 export async function listRooms(req, res, next) {
   try {
     const { search = '', category = '', status = '' } = req.query;
-    const rooms = await roomService.getAllRooms({ search, category, status });
+    let rooms = [];
+    let dbError = null;
+
+    try {
+      rooms = await roomService.getAllRooms({ search, category, status });
+    } catch (err) {
+      console.warn('[RoomController Warning]: Database error fetching rooms:', err.message);
+      dbError = 'Database temporarily unreachable. Please check MySQL credentials in .env.';
+    }
 
     res.render('rooms/index', {
       title: 'Room Management | HRMS',
@@ -51,7 +59,7 @@ export async function listRooms(req, res, next) {
       categories: VALID_CATEGORIES,
       statuses: VALID_STATUSES,
       successMessage: req.query.success || null,
-      errorMessage: req.query.error || null
+      errorMessage: req.query.error || dbError
     });
   } catch (error) {
     next(error);

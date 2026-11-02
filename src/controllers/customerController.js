@@ -31,14 +31,22 @@ function validateCustomerData({ name, email, phone }) {
 export async function listCustomers(req, res, next) {
   try {
     const search = req.query.search || '';
-    const customers = await customerService.getAllCustomers(search);
+    let customers = [];
+    let dbError = null;
+
+    try {
+      customers = await customerService.getAllCustomers(search);
+    } catch (err) {
+      console.warn('[CustomerController Warning]: Database error fetching customers:', err.message);
+      dbError = 'Database temporarily unreachable. Please check MySQL credentials in .env.';
+    }
 
     res.render('customers/index', {
       title: 'Customer Management | HRMS',
       customers,
       search,
       successMessage: req.query.success || null,
-      errorMessage: req.query.error || null
+      errorMessage: req.query.error || dbError
     });
   } catch (error) {
     next(error);

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title : 'Administrator Login | Grand Horizon Hotel' %></title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Custom Theme Stylesheet -->
+  <link rel="stylesheet" href="/css/style.css">
+
+  <style>
+    body.auth-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0b1329 0%, #111e38 50%, #1a2a4c 100%);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 1.5rem;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 440px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      background: #ffffff;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+    }
+
+    .auth-header {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 2.25rem 2rem 1.75rem;
+      text-align: center;
+      border-bottom: 2px solid #eab308;
+    }
+
+    .auth-brand-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 0.75rem;
+      background: rgba(234, 179, 8, 0.15);
+      color: #eab308;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      border: 1px solid rgba(234, 179, 8, 0.3);
+    }
+
+    .auth-body {
+      padding: 2rem;
+    }
+
+    .auth-footer {
+      background: #f8fafc;
+      padding: 1.25rem 2rem;
+      border-top: 1px solid #e2e8f0;
+      text-align: center;
+      font-size: 0.8125rem;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body class="auth-page">
+
+  <div class="auth-card">
+    <!-- Header with Luxury Branding -->
+    <div class="auth-header">
+      <div class="auth-brand-icon">
+        <i class="bi bi-buildings-fill fs-3"></i>
+      </div>
+      <h4 class="fw-bold mb-1 text-white" style="letter-spacing: 0.5px;">GRAND HORIZON</h4>
+      <p class="text-white-50 small mb-0">Hotel Reservation & Management System</p>
+    </div>
+
+    <!-- Login Form Body -->
+    <div class="auth-body">
+      <!-- Error & Success Alert Banners -->
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-danger d-flex align-items-center mb-4 py-2 px-3 small border-0 shadow-sm" role="alert">
+          <i class="bi bi-exclamation-triangle-fill fs-5 me-2 text-danger flex-shrink-0"></i>
+          <div><%= error %></div>
+        </div>
+      <% } %>
+
+      <% if (typeof success !== 'undefined' && success) { %>
+        <div class="alert alert-success d-flex align-items-center mb-4 py-2 px-3 small border-0 shadow-sm" role="alert">
+          <i class="bi bi-check-circle-fill fs-5 me-2 text-success flex-shrink-0"></i>
+          <div><%= success %></div>
+        </div>
+      <% } %>
+
+      <div class="mb-4 text-center">
+        <h5 class="fw-bold text-dark mb-1">Administrator Sign In</h5>
+        <p class="text-muted small mb-0">Enter your credentials to access the administrative dashboard</p>
+      </div>
+
+      <form action="/login" method="POST" id="loginForm" novalidate>
+        <!-- Username or Email -->
+        <div class="mb-3">
+          <label for="username" class="form-label fw-semibold text-secondary small">
+            Username or Email <span class="text-danger">*</span>
+          </label>
+          <div class="input-group">
+            <span class="input-group-text bg-light text-muted border-end-0">
+              <i class="bi bi-person-fill"></i>
+            </span>
+            <input 
+              type="text" 
+              class="form-control border-start-0 bg-light" 
+              id="username" 
+              name="username" 
+              placeholder="e.g. admin" 
+              value="<%= typeof formData !== 'undefined' && formData.username ? formData.username : '' %>"
+              required 
+              autofocus
+            >
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="mb-4">
+          <label for="password" class="form-label fw-semibold text-secondary small">
+            Password <span class="text-danger">*</span>
+          </label>
+          <div class="input-group">
+            <span class="input-group-text bg-light text-muted border-end-0">
+              <i class="bi bi-lock-fill"></i>
+            </span>
+            <input 
+              type="password" 
+              class="form-control border-start-0 border-end-0 bg-light" 
+              id="password" 
+              name="password" 
+              placeholder="••••••••••••" 
+              required
+            >
+            <button class="btn btn-light border border-start-0 text-muted" type="button" id="togglePasswordBtn" title="Toggle password visibility">
+              <i class="bi bi-eye" id="togglePasswordIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Sign In Submit Button -->
+        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold shadow-sm d-flex align-items-center justify-content-center gap-2">
+          <i class="bi bi-shield-lock-fill"></i>
+          <span>Sign In to Dashboard</span>
+        </button>
+      </form>
+
+      <!-- Academic Default Credentials Helper Card -->
+      <div class="card bg-light border-0 mt-4 p-3 rounded-3">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <i class="bi bi-info-circle-fill text-primary"></i>
+          <span class="fw-bold small text-dark">Default Administrator Account</span>
+        </div>
+        <div class="small text-muted">
+          <div>Username: <code class="text-dark fw-bold">admin</code></div>
+          <div>Password: <code class="text-dark fw-bold">Admin@12345</code></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security Footer -->
+    <div class="auth-footer">
+      <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
+        <i class="bi bi-shield-check text-success"></i>
+        <span>Bcrypt Salted Hashing &bull; Express Session Protection</span>
+      </div>
+      <div>&copy; <%= new Date().getFullYear() %> Grand Horizon HRMS &bull; MCA Academic Project</div>
+    </div>
+  </div>
+
+  <!-- Password Visibility Toggle Client Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggleBtn = document.getElementById('togglePasswordBtn');
+      const passwordInput = document.getElementById('password');
+      const toggleIcon = document.getElementById('togglePasswordIcon');
+
+      if (toggleBtn && passwordInput && toggleIcon) {
+        toggleBtn.addEventListener('click', () => {
+          const isPassword = passwordInput.getAttribute('type') === 'password';
+          passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+          toggleIcon.classList.toggle('bi-eye', !isPassword);
+          toggleIcon.classList.toggle('bi-eye-slash', isPassword);
+        });
+      }
+    });
+  </script>
+</body>
+</html>

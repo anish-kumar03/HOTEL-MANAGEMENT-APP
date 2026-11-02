@@ -42,9 +42,25 @@ The **Hotel Reservation & Management System (HRMS)** is an integrated management
 | **Template Engine** | EJS (Embedded JavaScript) with reusable component partials |
 | **Frontend Styling** | HTML5, CSS3, Bootstrap 5.3 (CDN), Bootstrap Icons 1.11, Google Fonts (Plus Jakarta Sans & Inter) |
 | **Visualization & Charts** | Chart.js 4.4 (Monthly Revenue, Category Distribution, Monthly Bookings) |
-| **Security & Logging** | Helmet (HTTP headers & CSP), Morgan (HTTP logger) |
+| **Security & Logging** | Bcrypt (password hashing, 10 salt rounds), Express-Session, Helmet (CSP & HTTP headers), Morgan (HTTP logger) |
+| **Authentication & AuthZ** | Session-based authentication, `requireAuth` route guards, secure cookies (`HttpOnly`, `SameSite=Lax`) |
 | **Database & Driver** | MySQL 8.4 LTS via `mysql2/promise` connection pool |
 | **Configuration** | Dotenv (zero hardcoded credentials) |
+
+---
+
+## 🔒 Phase 9: Administrator Authentication & Security Architecture
+
+The application includes enterprise-grade session authentication and route protection:
+- **`admin_users` Table:** Stores administrator identity (`admin_id`, `username`, `email`, `password_hash`, `created_at`). Plain-text passwords are never stored.
+- **Bcrypt Password Hashing:** Passwords are encrypted with 10 salt rounds before persistence or comparison.
+- **Session Management (`express-session`):** Authenticated state is managed via secure, signed server-side sessions with a 24-hour lifetime.
+- **Hardened Cookie Protection:** Session cookies are configured with `HttpOnly: true` (XSS mitigation), `SameSite: 'lax'` (CSRF mitigation), and conditional `Secure` flags for production HTTPS.
+- **Centralized Route Guards (`requireAuth`):** Every core administrative view (`/`, `/customers/*`, `/rooms/*`, `/reservations/*`, `/payments/*`, `/reports/*`) enforces an active session. Unauthenticated HTML requests are safely redirected to `/login?error=unauthorized` while API requests receive `HTTP 401 Unauthorized` JSON.
+- **Administrator Setup Script:** Includes `npm run seed:admin` (`database/seed-admin.js`) to generate initial administrative accounts from environment variables without exposing plain text in source control.
+- **Default Academic Credentials:**
+  - **Username / Email:** `admin` or `admin@grandhorizon.com`
+  - **Password:** `Admin@12345`
 
 ---
 
@@ -214,11 +230,14 @@ npm start
 
 ### Running Test Suites
 ```bash
-# Run automated unit and route test suite (47 tests)
+# Run automated unit, route, and authentication test suite (77 tests)
 npm test
 
-# Run live MySQL database E2E CRUD, transactional, and reporting verification
+# Run live MySQL database E2E CRUD, transactional, reporting, and auth verification
 node test/e2e-db-crud.js
+
+# Initialize or reseed default administrator account in MySQL
+npm run seed:admin
 ```
 
 ---
@@ -227,14 +246,17 @@ node test/e2e-db-crud.js
 
 | Endpoint | Method | Expected Output | Purpose |
 | :--- | :---: | :--- | :--- |
-| `http://localhost:3000/` | `GET` | HTML (Status 200) | Executive Admin Dashboard with 10 live KPI metrics & 3 Chart.js graphs. |
-| `http://localhost:3000/api/dashboard/stats` | `GET` | JSON (Status 200) | Telemetry endpoint returning real-time stats and Chart.js datasets. |
-| `http://localhost:3000/health` | `GET` | JSON (Status 200) | Health-check endpoint testing MySQL connection pool via `SELECT 1;`. |
-| `http://localhost:3000/customers` | `GET` | HTML (Status 200) | Customer directory with search and registration details. |
-| `http://localhost:3000/rooms` | `GET` | HTML (Status 200) | Physical room inventory with category & status filters. |
-| `http://localhost:3000/reservations` | `GET` | HTML (Status 200) | Reservation dashboard with status badges and actions. |
-| `http://localhost:3000/reservations/new` | `GET` | HTML (Status 200) | Booking form with date availability validator and dynamic quote. |
-| `http://localhost:3000/payments` | `GET` | HTML (Status 200) | Payment & billing overview with collection KPIs and search. |
+| `http://localhost:3000/login` | `GET` | HTML (Status 200) | Administrator Login portal with credentials input and password toggle. |
+| `http://localhost:3000/login` | `POST` | Redirect / HTML | Authenticates credentials, sets session cookie (`hrms_session_id`), redirects to `/`. |
+| `http://localhost:3000/logout` | `POST` | Redirect (302) | Destroys administrative session, clears session cookie, redirects to `/login`. |
+| `http://localhost:3000/health` | `GET` | JSON (Status 200/503) | Public health-check endpoint testing MySQL connection pool via `SELECT 1;`. |
+| `http://localhost:3000/` | `GET` | HTML (Status 200) | Protected Executive Admin Dashboard (requires session). |
+| `http://localhost:3000/api/dashboard/stats` | `GET` | JSON (Status 200) | Protected telemetry endpoint returning real-time stats and Chart.js datasets. |
+| `http://localhost:3000/customers` | `GET` | HTML (Status 200) | Protected customer directory with search and registration details. |
+| `http://localhost:3000/rooms` | `GET` | HTML (Status 200) | Protected physical room inventory with category & status filters. |
+| `http://localhost:3000/reservations` | `GET` | HTML (Status 200) | Protected reservation dashboard with status badges and actions. |
+| `http://localhost:3000/reservations/new` | `GET` | HTML (Status 200) | Protected booking form with date availability validator and dynamic quote. |
+| `http://localhost:3000/payments` | `GET` | HTML (Status 200) | Protected payment & billing overview with collection KPIs and search. |
 | `http://localhost:3000/payments/new` | `GET` | HTML (Status 200) | Form to record partial/full payments with server bill reconciliation. |
 | `http://localhost:3000/payments/history` | `GET` | HTML (Status 200) | Chronological payment audit ledger with method & status filters. |
 | `http://localhost:3000/reservations/:id/invoice` | `GET` | HTML (Status 200) | Itemized reservation folio with room charges & additional services. |

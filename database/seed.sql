@@ -225,3 +225,16 @@ VALUES
 (2, 4, 'Express Laundry Service', 450.00, DATE_SUB(NOW(), INTERVAL 1 DAY)),
 (3, 4, 'Buffet Breakfast (2 Pax)', 700.00, NOW());
 
+-- -----------------------------------------------------------------------------
+-- 7. Seed Table: admin_users
+-- Default Administrator Account (Default password: Admin@12345)
+-- Bcrypt Hash generated with 10 salt rounds
+-- -----------------------------------------------------------------------------
+INSERT INTO `admin_users` (`username`, `email`, `password_hash`)
+VALUES (
+  'admin',
+  'admin@grandhorizon.com',
+  '$2b$10$2LDlMKHNVowAGXfrcrr9h.H/YCWJjSy9O9DdYxAEiVXSfkIDYBFFy'
+) ON DUPLICATE KEY UPDATE `password_hash` = VALUES(`password_hash`);
+
+

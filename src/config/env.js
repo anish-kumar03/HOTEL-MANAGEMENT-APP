@@ -19,6 +19,13 @@ export const env = {
   APP_URL: process.env.APP_URL || `http://localhost:${process.env.PORT || 3000}`,
   SESSION_SECRET: process.env.SESSION_SECRET || 'default_insecure_session_secret',
   
+  // Administrator Setup Credentials (Used by seed script)
+  ADMIN: {
+    DEFAULT_USERNAME: process.env.ADMIN_USERNAME || 'admin',
+    DEFAULT_EMAIL: process.env.ADMIN_EMAIL || 'admin@grandhorizon.com',
+    DEFAULT_PASSWORD: process.env.ADMIN_PASSWORD || 'Admin@12345'
+  },
+  
   // Database Configuration (Never hardcoded)
   DB: {
     HOST: process.env.DB_HOST || 'localhost',
