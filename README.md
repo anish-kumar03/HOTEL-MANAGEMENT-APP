@@ -86,7 +86,8 @@ HOTEL MANAGEMENT APP/
 │   ├── schema.sql                  # Production MySQL 8.4 DDL script (tables & constraints)
 │   ├── seed.sql                    # Realistic sample data (customers, rooms, bookings, payments)
 │   ├── routines.sql                # MySQL 8.4 Stored Procedures, Functions, Triggers, Views & Cursors
-│   └── seed-admin.js               # CLI administrator seeding script (bcrypt hash)
+│   ├── seed-admin.js               # CLI administrator seeding script (bcrypt hash)
+│   └── reset-admin-password.js     # CLI administrator password reset utility (bcrypt hash)
 ├── docs/                           # Architecture & MCA Academic Documentation
 │   ├── PROJECT_PLAN.md             # Project requirements, scope & RTM
 │   ├── ARCHITECTURE.md             # Layered MVC, routing catalog & sequence diagrams
@@ -310,7 +311,7 @@ npm start
 
 ### Running Test Suites
 ```bash
-# Run automated unit, route, security, and stored routine test suite (90 tests)
+# Run automated unit, route, security, and stored routine test suite (103 tests)
 npm test
 
 # Run live MySQL database E2E CRUD, transactional, reporting, and auth verification
@@ -318,6 +319,10 @@ node test/e2e-db-crud.js
 
 # Initialize or reseed default administrator account in MySQL
 npm run seed:admin
+
+# Securely reset an administrator password via CLI or interactive prompt
+npm run admin:reset-password
+# or with direct arguments: node database/reset-admin-password.js <username> <new_password>
 ```
 
 ---
