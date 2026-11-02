@@ -166,3 +166,4 @@ export async function deleteRoom(id) {
   const result = await execute(sql, [id]);
   return result.affectedRows > 0;
 }
+

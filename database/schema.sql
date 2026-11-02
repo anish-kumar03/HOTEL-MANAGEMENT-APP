@@ -72,6 +72,7 @@ CREATE TABLE IF NOT EXISTS `reservations` (
   `room_id` INT UNSIGNED NOT NULL,
   `check_in_date` DATE NOT NULL,
   `check_out_date` DATE NOT NULL,
+  `guests_count` TINYINT UNSIGNED NOT NULL DEFAULT 1,
   `nightly_rate` DECIMAL(10,2) NOT NULL,
   `total_amount` DECIMAL(10,2) NOT NULL,
   `status` ENUM('pending', 'confirmed', 'checked_in', 'checked_out', 'cancelled', 'no_show') NOT NULL DEFAULT 'pending',

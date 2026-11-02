@@ -1,0 +1,299 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="container my-5">
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/"><i class="bi bi-house-door"></i> Home</a></li>
+      <li class="breadcrumb-item"><a href="/reservations">Reservations</a></li>
+      <li class="breadcrumb-item active" aria-current="page"><%= reservation.booking_code %></li>
+    </ol>
+  </nav>
+
+  <%- include('../partials/alerts') %>
+
+  <!-- Top Hero Bar -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <h3 class="fw-bold mb-0 text-dark font-monospace"><%= reservation.booking_code %></h3>
+          <% if (reservation.status === 'confirmed') { %>
+            <span class="badge bg-primary px-3 py-2 fs-6"><i class="bi bi-check-circle me-1"></i>Confirmed</span>
+          <% } else if (reservation.status === 'checked_in') { %>
+            <span class="badge bg-success px-3 py-2 fs-6"><i class="bi bi-door-open me-1"></i>Checked In</span>
+          <% } else if (reservation.status === 'checked_out') { %>
+            <span class="badge bg-secondary px-3 py-2 fs-6"><i class="bi bi-door-closed me-1"></i>Checked Out</span>
+          <% } else if (reservation.status === 'pending') { %>
+            <span class="badge bg-warning text-dark px-3 py-2 fs-6"><i class="bi bi-clock-history me-1"></i>Pending</span>
+          <% } else if (reservation.status === 'cancelled') { %>
+            <span class="badge bg-danger px-3 py-2 fs-6"><i class="bi bi-x-circle me-1"></i>Cancelled</span>
+          <% } else { %>
+            <span class="badge bg-light text-secondary border px-3 py-2 fs-6"><%= reservation.status %></span>
+          <% } %>
+        </div>
+        <p class="text-muted small mb-0">
+          Booked on <%= reservation.created_at %> &bull; Last updated <%= reservation.updated_at %>
+        </p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="d-flex flex-wrap gap-2">
+        <% if (reservation.status === 'confirmed' || reservation.status === 'pending') { %>
+          <form action="/reservations/<%= reservation.id %>/checkin" method="POST">
+            <button type="submit" class="btn btn-success px-3">
+              <i class="bi bi-box-arrow-in-right me-1"></i>Check-In Guest
+            </button>
+          </form>
+        <% } %>
+
+        <% if (reservation.status === 'checked_in') { %>
+          <form action="/reservations/<%= reservation.id %>/checkout" method="POST">
+            <button type="submit" class="btn btn-warning text-dark px-3">
+              <i class="bi bi-box-arrow-right me-1"></i>Check-Out Guest
+            </button>
+          </form>
+        <% } %>
+
+        <% if (reservation.status !== 'cancelled' && reservation.status !== 'checked_out') { %>
+          <button 
+            type="button" 
+            class="btn btn-outline-danger px-3" 
+            data-bs-toggle="modal" 
+            data-bs-target="#cancelModal"
+          >
+            <i class="bi bi-x-circle me-1"></i>Cancel Booking
+          </button>
+        <% } %>
+
+        <a href="/reservations" class="btn btn-outline-secondary px-3">
+          <i class="bi bi-arrow-left me-1"></i>Back to Roster
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <!-- Customer Card -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white py-3">
+          <h5 class="card-title mb-0 fw-semibold">
+            <i class="bi bi-person-fill text-primary me-2"></i>Guest Details
+          </h5>
+        </div>
+        <div class="card-body p-3">
+          <div class="mb-3">
+            <div class="text-muted small">Guest Name</div>
+            <a href="/customers/<%= reservation.customer_id %>" class="fw-bold text-dark fs-5 text-decoration-none">
+              <%= reservation.customer_name %>
+            </a>
+          </div>
+          <div class="mb-2 small">
+            <span class="text-muted">Email:</span>
+            <a href="mailto:<%= reservation.customer_email %>" class="text-decoration-none">
+              <%= reservation.customer_email %>
+            </a>
+          </div>
+          <div class="mb-2 small">
+            <span class="text-muted">Phone:</span>
+            <span class="fw-semibold"><%= reservation.customer_phone %></span>
+          </div>
+          <div class="small">
+            <span class="text-muted">Address:</span>
+            <div class="text-secondary"><%= reservation.customer_address || 'None recorded' %></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Room Card -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white py-3">
+          <h5 class="card-title mb-0 fw-semibold">
+            <i class="bi bi-door-open-fill text-primary me-2"></i>Allocated Room
+          </h5>
+        </div>
+        <div class="card-body p-3">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <div>
+              <div class="text-muted small">Room Number</div>
+              <h4 class="fw-bold text-dark mb-0">Room <%= reservation.room_number %></h4>
+            </div>
+            <span class="badge bg-dark px-3 py-2"><%= reservation.room_category %></span>
+          </div>
+          <div class="mb-2 small">
+            <span class="text-muted">Standard Capacity:</span>
+            <span class="fw-semibold"><%= reservation.room_capacity %> Guests</span>
+          </div>
+          <div class="mb-2 small">
+            <span class="text-muted">Operational State:</span>
+            <span class="badge <%= reservation.room_operational_status === 'ACTIVE' ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger' %> border">
+              <%= reservation.room_operational_status %>
+            </span>
+          </div>
+          <div class="small">
+            <a href="/rooms/<%= reservation.room_id %>/edit" class="btn btn-sm btn-outline-secondary mt-2">
+              <i class="bi bi-pencil me-1"></i>Inspect Room Record
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Billing Summary Snapshot Card -->
+    <div class="col-md-12 col-lg-4">
+      <div class="card border-0 shadow-sm h-100 bg-light">
+        <div class="card-header bg-white py-3">
+          <h5 class="card-title mb-0 fw-semibold">
+            <i class="bi bi-receipt text-primary me-2"></i>Rate & Tariff Snapshot
+          </h5>
+        </div>
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2 small">
+            <span class="text-muted">Stay Duration:</span>
+            <span class="fw-semibold"><%= reservation.nights %> <%= reservation.nights === 1 ? 'Night' : 'Nights' %></span>
+          </div>
+          <div class="d-flex justify-content-between mb-2 small">
+            <span class="text-muted">Locked Nightly Rate:</span>
+            <span class="fw-semibold">₹<%= Number(reservation.nightly_rate).toFixed(2) %></span>
+          </div>
+          <div class="d-flex justify-content-between mb-2 small">
+            <span class="text-muted">Guests Count:</span>
+            <span class="fw-semibold"><%= reservation.guests_count %></span>
+          </div>
+          <hr class="my-2">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="fw-bold text-dark">Total Amount:</span>
+            <span class="fs-4 fw-bold text-primary">₹<%= Number(reservation.total_amount).toFixed(2) %></span>
+          </div>
+          <div class="text-muted small mt-2">
+            <i class="bi bi-info-circle me-1"></i>Rate locked at time of booking ($<%= reservation.nights %> \times ₹<%= Number(reservation.nightly_rate).toFixed(2) %>$).
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stay Schedule & Special Requests -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white py-3">
+      <h5 class="card-title mb-0 fw-semibold">
+        <i class="bi bi-calendar-range text-primary me-2"></i>Stay Schedule & Instructions
+      </h5>
+    </div>
+    <div class="card-body p-4">
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="p-3 bg-light rounded-3 text-center border">
+            <div class="text-success small fw-bold text-uppercase"><i class="bi bi-box-arrow-in-right me-1"></i>Scheduled Check-In</div>
+            <h4 class="fw-bold text-dark my-1"><%= reservation.check_in_date %></h4>
+            <div class="text-muted small">Standard Check-In: 02:00 PM</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 bg-light rounded-3 text-center border">
+            <div class="text-danger small fw-bold text-uppercase"><i class="bi bi-box-arrow-right me-1"></i>Scheduled Check-Out</div>
+            <h4 class="fw-bold text-dark my-1"><%= reservation.check_out_date %></h4>
+            <div class="text-muted small">Standard Check-Out: 11:00 AM</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 bg-light rounded-3 text-center border">
+            <div class="text-primary small fw-bold text-uppercase"><i class="bi bi-moon-stars me-1"></i>Duration & Occupancy</div>
+            <h4 class="fw-bold text-dark my-1"><%= reservation.nights %> Nights</h4>
+            <div class="text-muted small"><%= reservation.guests_count %> Registered Guests</div>
+          </div>
+        </div>
+      </div>
+
+      <% if (reservation.special_requests) { %>
+        <div class="mt-4 p-3 bg-warning-subtle rounded-3 border border-warning-subtle">
+          <div class="fw-bold text-dark mb-1"><i class="bi bi-chat-left-text me-1"></i>Special Requests / Guest Notes:</div>
+          <div class="text-secondary"><%= reservation.special_requests %></div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Status Audit Trail -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+      <h5 class="card-title mb-0 fw-semibold">
+        <i class="bi bi-clock-history text-primary me-2"></i>Status Transition Audit Trail
+      </h5>
+    </div>
+    <div class="card-body p-0">
+      <% if (statusHistory.length === 0) { %>
+        <div class="text-center py-4 text-muted">No transition events recorded.</div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th scope="col" class="ps-4">Transition</th>
+                <th scope="col">Timestamp</th>
+                <th scope="col" class="pe-4">Remarks / Operator Audit</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% statusHistory.forEach(history => { %>
+                <tr>
+                  <td class="ps-4">
+                    <% if (history.previous_status) { %>
+                      <span class="badge bg-secondary-subtle text-secondary border me-1"><%= history.previous_status %></span>
+                      <i class="bi bi-arrow-right text-muted me-1"></i>
+                    <% } %>
+                    <span class="badge bg-primary"><%= history.new_status %></span>
+                  </td>
+                  <td>
+                    <span class="text-muted small"><%= history.change_timestamp %></span>
+                  </td>
+                  <td class="pe-4">
+                    <span class="text-secondary small"><%= history.remarks || 'Status updated.' %></span>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Cancel Modal -->
+  <% if (reservation.status !== 'cancelled' && reservation.status !== 'checked_out') { %>
+    <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title" id="cancelLabel">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Cancellation
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form action="/reservations/<%= reservation.id %>/cancel" method="POST">
+            <div class="modal-body p-4">
+              <p>Are you sure you want to cancel booking <strong><%= reservation.booking_code %></strong>?</p>
+              <p class="text-muted small">
+                Room <strong><%= reservation.room_number %></strong> will be released back to available inventory for dates 
+                <%= reservation.check_in_date %> to <%= reservation.check_out_date %>.
+              </p>
+              <div class="mb-3">
+                <label for="reason" class="form-label small fw-semibold">Cancellation Reason <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="reason" name="reason" placeholder="e.g. Guest requested cancellation via phone" required>
+              </div>
+            </div>
+            <div class="modal-footer bg-light">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Active</button>
+              <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  <% } %>
+</main>
+
+<%- include('../partials/footer') %>

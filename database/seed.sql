@@ -64,7 +64,7 @@ INSERT INTO `rooms` (`id`, `room_number`, `category`, `capacity`, `price_per_nig
 -- Uses CURRENT_DATE, DATE_SUB, and DATE_ADD to keep demonstration data evergreen.
 -- -----------------------------------------------------------------------------
 INSERT INTO `reservations` 
-(`id`, `booking_code`, `customer_id`, `room_id`, `check_in_date`, `check_out_date`, `nightly_rate`, `total_amount`, `status`, `special_requests`) 
+(`id`, `booking_code`, `customer_id`, `room_id`, `check_in_date`, `check_out_date`, `guests_count`, `nightly_rate`, `total_amount`, `status`, `special_requests`) 
 VALUES
 -- Res 1: Past completed stay (Checked-out 2 days ago)
 (
@@ -74,6 +74,7 @@ VALUES
   3, 
   DATE_SUB(CURRENT_DATE, INTERVAL 5 DAY), 
   DATE_SUB(CURRENT_DATE, INTERVAL 2 DAY), 
+  1,
   1500.00, 
   4500.00, 
   'checked_out', 
@@ -87,6 +88,7 @@ VALUES
   4, 
   DATE_SUB(CURRENT_DATE, INTERVAL 1 DAY), 
   DATE_ADD(CURRENT_DATE, INTERVAL 2 DAY), 
+  2,
   2800.00, 
   8400.00, 
   'checked_in', 
@@ -100,6 +102,7 @@ VALUES
   6, 
   CURRENT_DATE, 
   DATE_ADD(CURRENT_DATE, INTERVAL 3 DAY), 
+  2,
   2800.00, 
   8400.00, 
   'confirmed', 
@@ -113,6 +116,7 @@ VALUES
   9, 
   DATE_SUB(CURRENT_DATE, INTERVAL 2 DAY), 
   DATE_ADD(CURRENT_DATE, INTERVAL 1 DAY), 
+  3,
   5000.00, 
   15000.00, 
   'checked_in', 
@@ -126,6 +130,7 @@ VALUES
   14, 
   DATE_ADD(CURRENT_DATE, INTERVAL 4 DAY), 
   DATE_ADD(CURRENT_DATE, INTERVAL 7 DAY), 
+  4,
   9500.00, 
   28500.00, 
   'confirmed', 
@@ -139,6 +144,7 @@ VALUES
   5, 
   DATE_ADD(CURRENT_DATE, INTERVAL 10 DAY), 
   DATE_ADD(CURRENT_DATE, INTERVAL 12 DAY), 
+  1,
   2800.00, 
   5600.00, 
   'pending', 
@@ -152,6 +158,7 @@ VALUES
   7, 
   DATE_SUB(CURRENT_DATE, INTERVAL 3 DAY), 
   CURRENT_DATE, 
+  2,
   2800.00, 
   8400.00, 
   'cancelled', 

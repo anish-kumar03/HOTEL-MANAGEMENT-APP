@@ -25,3 +25,4 @@ router.post('/:id/edit', updateRoom);
 router.post('/:id/delete', deleteRoom);
 
 export default router;
+

@@ -1,0 +1,309 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/"><i class="bi bi-house-door"></i> Home</a></li>
+          <li class="breadcrumb-item"><a href="/reservations">Reservations</a></li>
+          <li class="breadcrumb-item active" aria-current="page">New Booking</li>
+        </ol>
+      </nav>
+
+      <%- include('../partials/alerts') %>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+          <h4 class="card-title mb-0 fw-bold">
+            <i class="bi bi-calendar-plus text-primary me-2"></i>Create New Reservation
+          </h4>
+          <span class="badge bg-light text-secondary border">
+            InnoDB Locked Transaction
+          </span>
+        </div>
+        <div class="card-body p-4">
+          <form action="/reservations" method="POST" id="bookingForm" novalidate>
+            <!-- Step 1: Select Customer -->
+            <div class="mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label for="customerId" class="form-label fw-semibold mb-0">
+                  Select Customer <span class="text-danger">*</span>
+                </label>
+                <a href="/customers/new" target="_blank" class="small text-decoration-none">
+                  <i class="bi bi-person-plus me-1"></i>Register New Customer
+                </a>
+              </div>
+              <select class="form-select" id="customerId" name="customerId" required>
+                <option value="">-- Choose Registered Customer --</option>
+                <% customers.forEach(cust => { %>
+                  <option 
+                    value="<%= cust.id %>" 
+                    <%= typeof formData !== 'undefined' && String(formData.customerId) === String(cust.id) ? 'selected' : '' %>
+                  >
+                    <%= cust.name %> (<%= cust.phone %> | <%= cust.email %>)
+                  </option>
+                <% }); %>
+              </select>
+            </div>
+
+            <!-- Step 2: Dates & Guests -->
+            <div class="row g-3 mb-4">
+              <div class="col-md-4">
+                <label for="checkInDate" class="form-label fw-semibold">
+                  Check-In Date <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-calendar-check"></i></span>
+                  <input 
+                    type="date" 
+                    class="form-control" 
+                    id="checkInDate" 
+                    name="checkInDate" 
+                    min="<%= todayStr %>"
+                    value="<%= typeof formData !== 'undefined' && formData.checkInDate ? formData.checkInDate : todayStr %>"
+                    required
+                  >
+                </div>
+              </div>
+
+              <div class="col-md-4">
+                <label for="checkOutDate" class="form-label fw-semibold">
+                  Check-Out Date <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-calendar-x"></i></span>
+                  <input 
+                    type="date" 
+                    class="form-control" 
+                    id="checkOutDate" 
+                    name="checkOutDate" 
+                    min="<%= todayStr %>"
+                    value="<%= typeof formData !== 'undefined' && formData.checkOutDate ? formData.checkOutDate : '' %>"
+                    required
+                  >
+                </div>
+              </div>
+
+              <div class="col-md-4">
+                <label for="guestsCount" class="form-label fw-semibold">
+                  Number of Guests <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-people"></i></span>
+                  <input 
+                    type="number" 
+                    class="form-control" 
+                    id="guestsCount" 
+                    name="guestsCount" 
+                    min="1" 
+                    max="10"
+                    value="<%= typeof formData !== 'undefined' && formData.guestsCount ? formData.guestsCount : 1 %>"
+                    required
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 3: Select Room -->
+            <div class="mb-4">
+              <label for="roomId" class="form-label fw-semibold">
+                Select Room <span class="text-danger">*</span>
+              </label>
+              <select class="form-select" id="roomId" name="roomId" required>
+                <option value="">-- Choose Hotel Room --</option>
+                <% rooms.forEach(room => { %>
+                  <option 
+                    value="<%= room.id %>" 
+                    data-number="<%= room.room_number %>"
+                    data-category="<%= room.category %>"
+                    data-capacity="<%= room.capacity %>"
+                    data-price="<%= room.price_per_night %>"
+                    data-status="<%= room.status %>"
+                    <%= typeof formData !== 'undefined' && String(formData.roomId) === String(room.id) ? 'selected' : '' %>
+                  >
+                    Room <%= room.room_number %> — <%= room.category %> (Max: <%= room.capacity %> guests) — ₹<%= Number(room.price_per_night).toFixed(2) %>/night
+                  </option>
+                <% }); %>
+              </select>
+            </div>
+
+            <!-- Live Quote & Availability Feedback Box -->
+            <div class="card bg-light border-0 mb-4 p-3" id="quoteBox">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold mb-0 text-dark">
+                  <i class="bi bi-calculator text-primary me-2"></i>Booking Quote & Availability Summary
+                </h6>
+                <span id="availabilityBadge" class="badge bg-secondary-subtle text-secondary border">
+                  Pending Room Selection
+                </span>
+              </div>
+              <hr class="my-2">
+              <div class="row g-2 small text-secondary">
+                <div class="col-sm-4">
+                  <div>Selected Room: <strong id="summaryRoom" class="text-dark">—</strong></div>
+                  <div>Category: <span id="summaryCategory">—</span></div>
+                </div>
+                <div class="col-sm-4">
+                  <div>Stay Duration: <strong id="summaryNights" class="text-dark">0 Nights</strong></div>
+                  <div>Nightly Rate: <span id="summaryRate">₹0.00</span></div>
+                </div>
+                <div class="col-sm-4 text-sm-end">
+                  <div class="text-muted">Total Booking Amount:</div>
+                  <div class="fs-4 fw-bold text-primary" id="summaryTotal">₹0.00</div>
+                </div>
+              </div>
+              <div id="availabilityAlert" class="mt-2 d-none"></div>
+            </div>
+
+            <!-- Special Requests -->
+            <div class="mb-4">
+              <label for="specialRequests" class="form-label fw-semibold">Special Requests / Notes</label>
+              <textarea 
+                class="form-control" 
+                id="specialRequests" 
+                name="specialRequests" 
+                rows="2" 
+                placeholder="e.g. Airport pickup, quiet corner room, extra pillows..."
+              ><%= typeof formData !== 'undefined' && formData.specialRequests ? formData.specialRequests : '' %></textarea>
+            </div>
+
+            <!-- Buttons -->
+            <div class="d-flex justify-content-end gap-2 border-top pt-3">
+              <a href="/reservations" class="btn btn-outline-secondary px-4">
+                <i class="bi bi-x-circle me-1"></i>Cancel
+              </a>
+              <button type="submit" class="btn btn-primary px-4" id="submitBtn">
+                <i class="bi bi-calendar-check-fill me-2"></i>Confirm & Book Reservation
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const checkInInput = document.getElementById('checkInDate');
+  const checkOutInput = document.getElementById('checkOutDate');
+  const roomSelect = document.getElementById('roomId');
+  const guestsInput = document.getElementById('guestsCount');
+  const availabilityBadge = document.getElementById('availabilityBadge');
+  const availabilityAlert = document.getElementById('availabilityAlert');
+  const summaryRoom = document.getElementById('summaryRoom');
+  const summaryCategory = document.getElementById('summaryCategory');
+  const summaryNights = document.getElementById('summaryNights');
+  const summaryRate = document.getElementById('summaryRate');
+  const summaryTotal = document.getElementById('summaryTotal');
+  const submitBtn = document.getElementById('submitBtn');
+
+  async function updateQuoteAndAvailability() {
+    const checkIn = checkInInput.value;
+    const checkOut = checkOutInput.value;
+    const selectedOption = roomSelect.options[roomSelect.selectedIndex];
+    const roomId = roomSelect.value;
+    const guests = parseInt(guestsInput.value, 10) || 1;
+
+    if (!roomId) {
+      summaryRoom.textContent = '—';
+      summaryCategory.textContent = '—';
+      summaryRate.textContent = '₹0.00';
+      summaryTotal.textContent = '₹0.00';
+      summaryNights.textContent = '0 Nights';
+      availabilityBadge.className = 'badge bg-secondary-subtle text-secondary border';
+      availabilityBadge.textContent = 'Select Room';
+      availabilityAlert.classList.add('d-none');
+      submitBtn.disabled = false;
+      return;
+    }
+
+    const price = parseFloat(selectedOption.dataset.price || 0);
+    const capacity = parseInt(selectedOption.dataset.capacity || 1, 10);
+    const roomNum = selectedOption.dataset.number;
+    const category = selectedOption.dataset.category;
+
+    summaryRoom.textContent = `Room ${roomNum}`;
+    summaryCategory.textContent = category;
+    summaryRate.textContent = `₹${price.toFixed(2)}/night`;
+
+    if (!checkIn || !checkOut || checkOut <= checkIn) {
+      summaryNights.textContent = 'Invalid Dates';
+      summaryTotal.textContent = '₹0.00';
+      availabilityBadge.className = 'badge bg-warning-subtle text-warning border';
+      availabilityBadge.textContent = 'Check-Out must be after Check-In';
+      availabilityAlert.classList.add('d-none');
+      return;
+    }
+
+    // Capacity validation check
+    if (guests > capacity) {
+      availabilityBadge.className = 'badge bg-danger-subtle text-danger border';
+      availabilityBadge.textContent = `Exceeds Capacity (Max: ${capacity})`;
+      availabilityAlert.className = 'alert alert-danger small p-2 mt-2';
+      availabilityAlert.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-1"></i> Number of guests (${guests}) exceeds Room ${roomNum}'s maximum capacity of ${capacity}.`;
+      availabilityAlert.classList.remove('d-none');
+      return;
+    }
+
+    // Call API for live availability check
+    try {
+      availabilityBadge.className = 'badge bg-info-subtle text-info border';
+      availabilityBadge.textContent = 'Checking availability...';
+
+      const res = await fetch(`/reservations/api/availability?room_id=${roomId}&check_in=${checkIn}&check_out=${checkOut}`);
+      const data = await res.json();
+
+      if (data.available) {
+        summaryNights.textContent = `${data.nights} ${data.nights === 1 ? 'Night' : 'Nights'}`;
+        summaryTotal.textContent = `₹${data.totalAmount.toFixed(2)}`;
+        availabilityBadge.className = 'badge bg-success-subtle text-success border border-success-subtle';
+        availabilityBadge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Available for Selected Dates';
+        availabilityAlert.classList.add('d-none');
+        submitBtn.disabled = false;
+      } else {
+        summaryNights.textContent = `${data.nights} Nights`;
+        summaryTotal.textContent = `₹${data.totalAmount.toFixed(2)}`;
+        availabilityBadge.className = 'badge bg-danger-subtle text-danger border border-danger-subtle';
+        availabilityBadge.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i>Room Unavailable / Conflict Detected';
+        
+        let conflictMsg = `Room ${roomNum} already has an active overlapping reservation for these dates.`;
+        if (data.conflictingReservation) {
+          conflictMsg += ` (Conflict with ${data.conflictingReservation.booking_code}: ${data.conflictingReservation.check_in_date} to ${data.conflictingReservation.check_out_date})`;
+        }
+        availabilityAlert.className = 'alert alert-danger small p-2 mt-2';
+        availabilityAlert.innerHTML = `<i class="bi bi-exclamation-octagon-fill me-1"></i> ${conflictMsg}`;
+        availabilityAlert.classList.remove('d-none');
+      }
+    } catch (e) {
+      console.error('Availability check failed:', e);
+    }
+  }
+
+  checkInInput.addEventListener('change', () => {
+    if (checkInInput.value) {
+      const nextDay = new Date(checkInInput.value);
+      nextDay.setDate(nextDay.getDate() + 1);
+      const nextDayStr = nextDay.toISOString().slice(0, 10);
+      checkOutInput.min = nextDayStr;
+      if (!checkOutInput.value || checkOutInput.value <= checkInInput.value) {
+        checkOutInput.value = nextDayStr;
+      }
+    }
+    updateQuoteAndAvailability();
+  });
+
+  checkOutInput.addEventListener('change', updateQuoteAndAvailability);
+  roomSelect.addEventListener('change', updateQuoteAndAvailability);
+  guestsInput.addEventListener('input', updateQuoteAndAvailability);
+
+  // Initial trigger if values present
+  if (roomSelect.value && checkInInput.value && checkOutInput.value) {
+    updateQuoteAndAvailability();
+  }
+});
+</script>
+
+<%- include('../partials/footer') %>

@@ -192,3 +192,4 @@ export async function deleteCustomer(id) {
   const result = await execute(sql, [id]);
   return result.affectedRows > 0;
 }
+

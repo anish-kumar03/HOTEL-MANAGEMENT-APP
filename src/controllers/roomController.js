@@ -216,3 +216,4 @@ export async function deleteRoom(req, res, next) {
     next(error);
   }
 }
+
