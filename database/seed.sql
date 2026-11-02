@@ -9,6 +9,7 @@ USE `hotel_reservation_db`;
 -- Temporarily disable foreign keys for safe, idempotent re-seeding
 SET FOREIGN_KEY_CHECKS = 0;
 
+TRUNCATE TABLE `reservation_services`;
 TRUNCATE TABLE `reservation_status_history`;
 TRUNCATE TABLE `payments`;
 TRUNCATE TABLE `reservations`;
@@ -167,24 +168,26 @@ VALUES
 
 -- -----------------------------------------------------------------------------
 -- 4. Insert Sample Payments
+-- Payment Methods: CASH, UPI, CARD
+-- Payment Status: SUCCESS, PENDING, FAILED
 -- -----------------------------------------------------------------------------
 INSERT INTO `payments` 
 (`id`, `payment_reference`, `reservation_id`, `amount`, `payment_method`, `payment_status`, `payment_date`, `transaction_id`, `notes`) 
 VALUES
--- Payment for Res 1 (Full payment settled)
-(1, 'PAY-2026-0001', 1, 4500.00, 'credit_card', 'completed', DATE_SUB(NOW(), INTERVAL 2 DAY), 'TXN_CC_9823419082', 'Settled in full at checkout.'),
+-- Payment for Res 1 (Full payment settled via Card)
+(1, 'PAY-2026-0001', 1, 4500.00, 'CARD', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 2 DAY), 'TXN_CARD_9823419082', 'Settled in full at checkout.'),
 
 -- Payment for Res 2 (Advance partial payment via UPI)
-(2, 'PAY-2026-0002', 2, 5000.00, 'upi', 'completed', DATE_SUB(NOW(), INTERVAL 1 DAY), 'UPI/20261101/98127391', 'Advance paid at check-in via GPay.'),
+(2, 'PAY-2026-0002', 2, 5000.00, 'UPI', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 1 DAY), 'UPI/20261101/98127391', 'Advance paid at check-in via GPay.'),
 
--- Payment for Res 3 (Advance deposit via Net Banking)
-(3, 'PAY-2026-0003', 3, 8400.00, 'bank_transfer', 'completed', DATE_SUB(NOW(), INTERVAL 3 DAY), 'NEFT_HDFC_887192301', 'Full booking tariff pre-paid.'),
+-- Payment for Res 3 (Full tariff advance via UPI)
+(3, 'PAY-2026-0003', 3, 8400.00, 'UPI', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 3 DAY), 'UPI_HDFC_887192301', 'Full booking tariff pre-paid.'),
 
 -- Payment for Res 4 (Partial cash payment upon arrival)
-(4, 'PAY-2026-0004', 4, 10000.00, 'cash', 'completed', DATE_SUB(NOW(), INTERVAL 2 DAY), NULL, 'Cash deposit received at front desk.'),
+(4, 'PAY-2026-0004', 4, 10000.00, 'CASH', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 2 DAY), NULL, 'Cash deposit received at front desk.'),
 
--- Payment for Res 5 (Advance guarantee via Credit Card)
-(5, 'PAY-2026-0005', 5, 10000.00, 'credit_card', 'completed', DATE_SUB(NOW(), INTERVAL 1 DAY), 'TXN_AMEX_119283746', 'Advance booking token deposit.');
+-- Payment for Res 5 (Advance token deposit via Card)
+(5, 'PAY-2026-0005', 5, 10000.00, 'CARD', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 1 DAY), 'TXN_CARD_119283746', 'Advance booking token deposit.');
 
 -- -----------------------------------------------------------------------------
 -- 5. Insert Sample Reservation Status History
@@ -211,4 +214,14 @@ VALUES
 (10, 7, NULL,        'pending',     DATE_SUB(NOW(), INTERVAL 7 DAY),  'Reservation entered.'),
 (11, 7, 'pending',   'confirmed',   DATE_SUB(NOW(), INTERVAL 6 DAY),  'Confirmed.'),
 (12, 7, 'confirmed', 'cancelled',   DATE_SUB(NOW(), INTERVAL 4 DAY),  'Cancelled by guest due to flight cancellation.');
+
+-- -----------------------------------------------------------------------------
+-- 6. Insert Sample Reservation Additional Services
+-- -----------------------------------------------------------------------------
+INSERT INTO `reservation_services` 
+(`id`, `reservation_id`, `service_name`, `amount`, `created_at`) 
+VALUES
+(1, 2, 'Airport Shuttle Transfer', 800.00, DATE_SUB(NOW(), INTERVAL 1 DAY)),
+(2, 4, 'Express Laundry Service', 450.00, DATE_SUB(NOW(), INTERVAL 1 DAY)),
+(3, 4, 'Buffet Breakfast (2 Pax)', 700.00, NOW());
 

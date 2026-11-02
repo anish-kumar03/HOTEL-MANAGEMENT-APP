@@ -9,6 +9,7 @@ import homeRoutes from './routes/homeRoutes.js';
 import customerRoutes from './routes/customerRoutes.js';
 import roomRoutes from './routes/roomRoutes.js';
 import reservationRoutes from './routes/reservationRoutes.js';
+import billingRoutes from './routes/billingRoutes.js';
 import { notFoundHandler, globalErrorHandler } from './middleware/errorHandler.js';
 
 // Resolve directory paths for ES Modules
@@ -74,6 +75,7 @@ app.use('/', homeRoutes);
 app.use('/customers', customerRoutes);
 app.use('/rooms', roomRoutes);
 app.use('/reservations', reservationRoutes);
+app.use('/', billingRoutes);
 
 // =============================================================================
 // 5. CENTRALIZED ERROR HANDLING

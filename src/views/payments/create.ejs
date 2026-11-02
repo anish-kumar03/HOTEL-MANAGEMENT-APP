@@ -1,0 +1,199 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/"><i class="bi bi-house-door"></i> Home</a></li>
+          <li class="breadcrumb-item"><a href="/payments">Payments</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Record Payment</li>
+        </ol>
+      </nav>
+
+      <%- include('../partials/alerts') %>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+          <h4 class="card-title mb-0 fw-bold">
+            <i class="bi bi-cash-stack text-primary me-2"></i>Record Reservation Payment
+          </h4>
+          <span class="badge bg-light text-secondary border">
+            ACID Transaction Protected
+          </span>
+        </div>
+        <div class="card-body p-4">
+          <form action="/payments" method="POST" id="paymentForm" novalidate>
+            <!-- Step 1: Select Reservation -->
+            <div class="mb-4">
+              <label for="reservationId" class="form-label fw-semibold">
+                Select Reservation <span class="text-danger">*</span>
+              </label>
+              <select class="form-select" id="reservationId" name="reservationId" required onchange="handleReservationChange(this.value)">
+                <option value="">-- Choose Reservation --</option>
+                <% reservations.forEach(res => { %>
+                  <option 
+                    value="<%= res.id %>" 
+                    <%= String(selectedReservationId) === String(res.id) ? 'selected' : '' %>
+                  >
+                    <%= res.booking_code %> — <%= res.customer_name %> (Room <%= res.room_number %>, <%= res.nights %> nts)
+                  </option>
+                <% }); %>
+              </select>
+            </div>
+
+            <!-- Live Bill Summary Box (Server Calculated) -->
+            <% if (selectedBill) { %>
+              <div class="card bg-light border-0 p-3 mb-4" id="billSummaryBox">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h6 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-receipt text-primary me-1"></i>Verified Server Bill Summary
+                  </h6>
+                  <% if (selectedBill.calculation.billPaymentStatus === 'PAID') { %>
+                    <span class="badge bg-success">PAID IN FULL</span>
+                  <% } else if (selectedBill.calculation.billPaymentStatus === 'PARTIALLY_PAID') { %>
+                    <span class="badge bg-warning text-dark">PARTIALLY PAID</span>
+                  <% } else { %>
+                    <span class="badge bg-danger">UNPAID</span>
+                  <% } %>
+                </div>
+                <hr class="my-2">
+                <div class="row g-2 small text-secondary">
+                  <div class="col-sm-4">
+                    <div>Room Charges: <strong>₹<%= selectedBill.calculation.roomCharges.toFixed(2) %></strong></div>
+                    <div>Additional Charges: <strong>₹<%= selectedBill.calculation.additionalCharges.toFixed(2) %></strong></div>
+                  </div>
+                  <div class="col-sm-4">
+                    <div>Final Amount: <strong>₹<%= selectedBill.calculation.finalAmount.toFixed(2) %></strong></div>
+                    <div>Already Paid: <span class="text-success fw-bold">₹<%= selectedBill.calculation.paidAmount.toFixed(2) %></span></div>
+                  </div>
+                  <div class="col-sm-4 text-sm-end">
+                    <div class="text-muted">Remaining Balance:</div>
+                    <div class="fs-4 fw-bold text-danger" id="remainingBalanceDisplay">
+                      ₹<%= selectedBill.calculation.remainingBalance.toFixed(2) %>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% } else { %>
+              <div class="alert alert-info small d-flex align-items-center mb-4">
+                <i class="bi bi-info-circle-fill fs-5 me-2"></i>
+                Select a reservation above to load its verified server-calculated bill and outstanding balance.
+              </div>
+            <% } %>
+
+            <!-- Step 2: Payment Amount & Method -->
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label for="amount" class="form-label fw-semibold mb-0">
+                    Payment Amount (₹) <span class="text-danger">*</span>
+                  </label>
+                  <% if (selectedBill && selectedBill.calculation.remainingBalance > 0) { %>
+                    <button 
+                      type="button" 
+                      class="btn btn-link btn-sm p-0 text-decoration-none"
+                      onclick="document.getElementById('amount').value = '<%= selectedBill.calculation.remainingBalance.toFixed(2) %>'"
+                    >
+                      Pay Full (₹<%= selectedBill.calculation.remainingBalance.toFixed(2) %>)
+                    </button>
+                  <% } %>
+                </div>
+                <div class="input-group">
+                  <span class="input-group-text">₹</span>
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    min="1" 
+                    <% if (selectedBill) { %>
+                      max="<%= selectedBill.calculation.remainingBalance %>"
+                    <% } %>
+                    class="form-control" 
+                    id="amount" 
+                    name="amount" 
+                    placeholder="Enter settlement amount..."
+                    value="<%= typeof formData !== 'undefined' && formData.amount ? formData.amount : '' %>"
+                    required
+                    <%= selectedBill && selectedBill.calculation.remainingBalance <= 0 ? 'disabled' : '' %>
+                  >
+                </div>
+                <div class="form-text">Partial payments are supported. Must not exceed remaining balance.</div>
+              </div>
+
+              <div class="col-md-6">
+                <label for="paymentMethod" class="form-label fw-semibold">
+                  Payment Method <span class="text-danger">*</span>
+                </label>
+                <select class="form-select" id="paymentMethod" name="paymentMethod" required>
+                  <% methods.forEach(m => { %>
+                    <option value="<%= m %>" <%= typeof formData !== 'undefined' && formData.paymentMethod === m ? 'selected' : '' %>>
+                      <%= m %>
+                    </option>
+                  <% }); %>
+                </select>
+                <div class="form-text">Choose from CASH, UPI, or CARD.</div>
+              </div>
+            </div>
+
+            <!-- Step 3: Transaction ID / Notes -->
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label for="transactionId" class="form-label fw-semibold">External Reference / Transaction ID</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="transactionId" 
+                  name="transactionId" 
+                  placeholder="e.g. UPI Ref #, POS Terminal Auth Code"
+                  value="<%= typeof formData !== 'undefined' && formData.transactionId ? formData.transactionId : '' %>"
+                >
+                <div class="form-text text-danger small">
+                  <i class="bi bi-shield-lock me-1"></i>Security Rule: Never enter card numbers, PINs, or CVV.
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <label for="notes" class="form-label fw-semibold">Settlement Notes / Remarks</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="notes" 
+                  name="notes" 
+                  placeholder="e.g. Advance paid at check-in"
+                  value="<%= typeof formData !== 'undefined' && formData.notes ? formData.notes : '' %>"
+                >
+              </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="d-flex justify-content-end gap-2 border-top pt-3">
+              <a href="/payments" class="btn btn-outline-secondary px-4">
+                <i class="bi bi-x-circle me-1"></i>Cancel
+              </a>
+              <button 
+                type="submit" 
+                class="btn btn-primary px-4"
+                <%= selectedBill && selectedBill.calculation.remainingBalance <= 0 ? 'disabled' : '' %>
+              >
+                <i class="bi bi-check-circle-fill me-1"></i>Record & Generate Receipt
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+function handleReservationChange(resId) {
+  if (resId) {
+    window.location.href = `/payments/new?reservation_id=${resId}`;
+  } else {
+    window.location.href = `/payments/new`;
+  }
+}
+</script>
+
+<%- include('../partials/footer') %>

@@ -473,3 +473,4 @@ export async function cancelReservation(id, reason = 'Cancelled by administrator
 
   return await updateReservationStatus(id, 'cancelled', reason);
 }
+

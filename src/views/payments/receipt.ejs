@@ -1,0 +1,180 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<style>
+@media print {
+  body {
+    background-color: #fff !important;
+  }
+  .navbar, footer, .no-print, .breadcrumb {
+    display: none !important;
+  }
+  .receipt-card {
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .card-header, .card-footer {
+    background-color: #f8f9fa !important;
+    color: #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+</style>
+
+<main class="container my-5 flex-grow-1">
+  <div class="no-print mb-3 d-flex justify-content-between align-items-center">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="/"><i class="bi bi-house-door"></i> Home</a></li>
+        <li class="breadcrumb-item"><a href="/payments">Payments</a></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= receipt.payment_reference %></li>
+      </ol>
+    </nav>
+    <div class="d-flex gap-2">
+      <button onclick="window.print()" class="btn btn-primary px-4 shadow-sm">
+        <i class="bi bi-printer me-2"></i>Print Receipt
+      </button>
+      <a href="/reservations/<%= receipt.reservation_id %>/invoice" class="btn btn-outline-secondary px-3">
+        <i class="bi bi-file-earmark-text me-1"></i>View Full Invoice
+      </a>
+      <a href="/payments" class="btn btn-outline-dark px-3">
+        <i class="bi bi-arrow-left me-1"></i>Back
+      </a>
+    </div>
+  </div>
+
+  <%- include('../partials/alerts') %>
+
+  <!-- Printable Receipt Card -->
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card border receipt-card shadow-sm bg-white">
+        <!-- Receipt Header -->
+        <div class="card-header bg-dark text-white p-4">
+          <div class="row align-items-center">
+            <div class="col-sm-7">
+              <h4 class="fw-bold mb-1 d-flex align-items-center gap-2">
+                <i class="bi bi-buildings-fill text-warning"></i>
+                <span>HOTEL MANAGEMENT SYSTEM</span>
+              </h4>
+              <p class="small text-light text-opacity-75 mb-0">
+                Official Settlement Receipt & Payment Voucher
+              </p>
+            </div>
+            <div class="col-sm-5 text-sm-end mt-3 mt-sm-0">
+              <span class="badge bg-success-subtle text-success fs-6 border border-success-subtle px-3 py-2">
+                <i class="bi bi-check-circle-fill me-1"></i>PAYMENT SUCCESS
+              </span>
+              <div class="small text-light text-opacity-75 mt-1 font-monospace">
+                <%= receipt.payment_reference %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body p-4">
+          <!-- Receipt Metadata Details -->
+          <div class="row g-3 mb-4 pb-3 border-bottom">
+            <div class="col-6 col-sm-3">
+              <div class="text-muted small">Receipt Date:</div>
+              <div class="fw-bold text-dark"><%= receipt.payment_date.split(' ')[0] %></div>
+              <div class="text-muted small"><%= receipt.payment_date.split(' ')[1] || '' %></div>
+            </div>
+            <div class="col-6 col-sm-3">
+              <div class="text-muted small">Payment Instrument:</div>
+              <div class="fw-bold text-dark">
+                <i class="bi bi-credit-card me-1 text-primary"></i><%= receipt.payment_method %>
+              </div>
+            </div>
+            <div class="col-6 col-sm-3">
+              <div class="text-muted small">Booking Reference:</div>
+              <div class="fw-bold text-primary font-monospace"><%= receipt.booking_code %></div>
+            </div>
+            <div class="col-6 col-sm-3">
+              <div class="text-muted small">Allocated Room:</div>
+              <div class="fw-bold text-dark">Room <%= receipt.room_number %> (<%= receipt.room_category %>)</div>
+            </div>
+          </div>
+
+          <!-- Customer & Guest Block -->
+          <div class="bg-light p-3 rounded-3 mb-4 border">
+            <div class="row g-2">
+              <div class="col-sm-6">
+                <span class="text-muted small">Guest Name:</span>
+                <div class="fw-bold text-dark fs-5"><%= receipt.customer_name %></div>
+              </div>
+              <div class="col-sm-6 text-sm-end">
+                <span class="text-muted small">Contact Info:</span>
+                <div class="fw-semibold text-secondary"><%= receipt.customer_phone %> &bull; <%= receipt.customer_email %></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Amount Focus Block -->
+          <div class="p-4 my-3 bg-success-subtle rounded-3 border border-success-subtle text-center">
+            <div class="text-success small fw-bold text-uppercase mb-1">Total Amount Paid in this Settlement</div>
+            <h1 class="display-4 fw-bold text-success mb-0">₹<%= Number(receipt.amount).toFixed(2) %></h1>
+            <% if (receipt.transaction_id) { %>
+              <div class="text-muted small mt-2">
+                <span class="fw-semibold">Transaction / Auth Code:</span> <code><%= receipt.transaction_id %></code>
+              </div>
+            <% } %>
+            <% if (receipt.notes) { %>
+              <div class="text-secondary small mt-1 font-italic">
+                "<%= receipt.notes %>"
+              </div>
+            <% } %>
+          </div>
+
+          <!-- Post-Payment Statement & Reconciliation -->
+          <div class="mt-4 pt-3 border-top">
+            <h6 class="fw-bold text-dark mb-3">
+              <i class="bi bi-wallet2 text-primary me-2"></i>Folio Balance Reconciliation
+            </h6>
+            <div class="table-responsive">
+              <table class="table table-sm table-bordered mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Total Final Bill</th>
+                    <th>Cumulative Paid to Date</th>
+                    <th>Remaining Balance Due</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="fw-semibold">
+                    <td>₹<%= Number(receipt.billSummary.finalAmount).toFixed(2) %></td>
+                    <td class="text-success">₹<%= Number(receipt.billSummary.paidAmount).toFixed(2) %></td>
+                    <td class="text-danger fw-bold fs-6">₹<%= Number(receipt.billSummary.remainingBalance).toFixed(2) %></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Signatures & Stamp block for print -->
+          <div class="row mt-5 pt-4 text-center">
+            <div class="col-6">
+              <div class="border-top pt-2 mx-4 text-muted small">
+                Guest Signature
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="border-top pt-2 mx-4 text-muted small">
+                Authorized Hotel Cashier / Seal
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-footer bg-light p-3 text-center small text-muted">
+          Thank you for choosing our hospitality. Please retain this official computer-generated receipt for your records.
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

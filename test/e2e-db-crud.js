@@ -7,6 +7,7 @@ import { testConnection } from '../src/config/db.js';
 import * as customerService from '../src/services/customerService.js';
 import * as roomService from '../src/services/roomService.js';
 import * as reservationService from '../src/services/reservationService.js';
+import * as billingService from '../src/services/billingService.js';
 
 async function runE2ECrudTests() {
   console.log('='.repeat(70));
@@ -28,7 +29,7 @@ async function runE2ECrudTests() {
     // -------------------------------------------------------------------------
     // MODULE 1: CUSTOMER MANAGEMENT CRUD
     // -------------------------------------------------------------------------
-    console.log('--- [TEST 1/3] CUSTOMER MANAGEMENT CRUD ---');
+    console.log('--- [TEST 1/4] CUSTOMER MANAGEMENT CRUD ---');
 
     const testCustomerPayload = {
       name: 'Automated Test Guest',
@@ -62,7 +63,7 @@ async function runE2ECrudTests() {
     // -------------------------------------------------------------------------
     // MODULE 2: ROOM MANAGEMENT CRUD
     // -------------------------------------------------------------------------
-    console.log('--- [TEST 2/3] ROOM MANAGEMENT CRUD ---');
+    console.log('--- [TEST 2/4] ROOM MANAGEMENT CRUD ---');
 
     const testRoomNumber = `T${Math.floor(100 + Math.random() * 900)}`;
     const testRoomPayload = {
@@ -93,7 +94,7 @@ async function runE2ECrudTests() {
     // -------------------------------------------------------------------------
     // MODULE 3: RESERVATION MANAGEMENT & TRANSACTIONAL ENGINE
     // -------------------------------------------------------------------------
-    console.log('--- [TEST 3/3] RESERVATION MANAGEMENT & CONFLICT AVOIDANCE ---');
+    console.log('--- [TEST 3/4] RESERVATION MANAGEMENT & CONFLICT AVOIDANCE ---');
 
     const today = new Date();
     const inDate = new Date(today.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -136,14 +137,70 @@ async function runE2ECrudTests() {
 
     // 5. Audit History Verification
     const history = await reservationService.getReservationStatusHistory(booking.reservationId);
-    console.log(`✔ 5. Status Audit Trail: Found ${history.length} transition logs`);
+    console.log(`✔ 5. Status Audit Trail: Found ${history.length} transition logs\n`);
 
-    // 6. Relational Integrity Protection (Cannot delete customer with reservation)
+    // -------------------------------------------------------------------------
+    // MODULE 4: PAYMENT AND BILLING MANAGEMENT CRUD & TRANSACTIONS
+    // -------------------------------------------------------------------------
+    console.log('--- [TEST 4/4] PAYMENT & BILLING TRANSACTIONS & SETTLEMENTS ---');
+
+    // 1. Add Additional Service Charge
+    const serviceId = await billingService.addAdditionalService(booking.reservationId, {
+      serviceName: 'Airport Shuttle Luxury Van',
+      amount: 750.00
+    });
+    console.log(`✔ 1. Add Service Charge: Added "Airport Shuttle" (₹750.00, ID #${serviceId})`);
+
+    // 2. Fetch Server-side Bill Summary
+    const initialBill = await billingService.getReservationBill(booking.reservationId);
+    console.log(`✔ 2. Bill Calculation: Room ₹${initialBill.calculation.roomCharges} + Services ₹${initialBill.calculation.additionalCharges} = Final ₹${initialBill.calculation.finalAmount} (Status: ${initialBill.calculation.billPaymentStatus})`);
+
+    // 3. Record Partial Payment (ACID Transaction)
+    const partialPay = await billingService.recordPayment({
+      reservationId: booking.reservationId,
+      amount: 1500.00,
+      paymentMethod: 'UPI',
+      transactionId: 'UPI-TEST-9876543210',
+      notes: 'Initial advance settlement'
+    });
+    console.log(`✔ 3. Partial Payment: Paid ₹1500.00 via UPI (Ref: ${partialPay.paymentReference}), Remaining Balance: ₹${partialPay.remainingBalance}`);
+
+    // 4. Overpayment Guard Verification
+    try {
+      await billingService.recordPayment({
+        reservationId: booking.reservationId,
+        amount: partialPay.remainingBalance + 5000.00,
+        paymentMethod: 'CASH'
+      });
+      console.error('❌ Failed: Overpayment should have been blocked!');
+    } catch (overpayErr) {
+      console.log(`✔ 4. Overpayment Guard: Successfully rejected payment exceeding balance: "${overpayErr.message}"`);
+    }
+
+    // 5. Final Settle Payment
+    const finalPay = await billingService.recordPayment({
+      reservationId: booking.reservationId,
+      amount: partialPay.remainingBalance,
+      paymentMethod: 'CARD',
+      transactionId: 'CARD-AUTH-654321',
+      notes: 'Final settlement at checkout'
+    });
+    console.log(`✔ 5. Full Settlement: Paid remaining ₹${finalPay.amount} via CARD, Remaining Balance: ₹${finalPay.remainingBalance} (Fully Paid: ${finalPay.isFullyPaid})`);
+
+    // 6. Printable Receipt Verification
+    const receipt = await billingService.getPaymentReceipt(finalPay.paymentId);
+    console.log(`✔ 6. Payment Receipt: Retrieved voucher "${receipt.payment_reference}" for ₹${receipt.amount} (${receipt.payment_status})`);
+
+    // 7. Payment History Verification
+    const paymentLogs = await billingService.getAllPayments();
+    console.log(`✔ 7. Payment Ledger: Fetched ${paymentLogs.length} total transaction logs across system\n`);
+
+    // 8. Relational Integrity Protection (Cannot delete customer with reservation)
     try {
       await customerService.deleteCustomer(createdCustomerId);
       console.error('❌ Failed: Customer with reservations should not be deletable!');
     } catch (constraintErr) {
-      console.log(`✔ 6. Relational Integrity: Prevented deletion of customer with booking records: "${constraintErr.message}"`);
+      console.log(`✔ 8. Relational Integrity: Prevented deletion of customer with booking records: "${constraintErr.message}"`);
     }
 
     // Cleanup test records

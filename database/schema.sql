@@ -14,6 +14,7 @@ USE `hotel_reservation_db`;
 -- Temporarily disable foreign key checks for clean, safe table recreation
 SET FOREIGN_KEY_CHECKS = 0;
 
+DROP TABLE IF EXISTS `reservation_services`;
 DROP TABLE IF EXISTS `reservation_status_history`;
 DROP TABLE IF EXISTS `payments`;
 DROP TABLE IF EXISTS `reservations`;
@@ -104,8 +105,8 @@ CREATE TABLE IF NOT EXISTS `payments` (
   `payment_reference` VARCHAR(30) NOT NULL,
   `reservation_id` INT UNSIGNED NOT NULL,
   `amount` DECIMAL(10,2) NOT NULL,
-  `payment_method` ENUM('cash', 'credit_card', 'debit_card', 'upi', 'bank_transfer') NOT NULL,
-  `payment_status` ENUM('completed', 'pending', 'failed', 'refunded') NOT NULL DEFAULT 'completed',
+  `payment_method` ENUM('CASH', 'UPI', 'CARD') NOT NULL DEFAULT 'CASH',
+  `payment_status` ENUM('SUCCESS', 'PENDING', 'FAILED') NOT NULL DEFAULT 'SUCCESS',
   `payment_date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `transaction_id` VARCHAR(100) DEFAULT NULL,
   `notes` TEXT DEFAULT NULL,
@@ -137,4 +138,21 @@ CREATE TABLE IF NOT EXISTS `reservation_status_history` (
   KEY `idx_rsh_timestamp` (`change_timestamp`),
   CONSTRAINT `fk_rsh_reservation` FOREIGN KEY (`reservation_id`)
     REFERENCES `reservations` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- 6. Table: reservation_services
+-- Stores itemized additional service charges associated with a reservation bill.
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `reservation_services` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `reservation_id` INT UNSIGNED NOT NULL,
+  `service_name` VARCHAR(100) NOT NULL,
+  `amount` DECIMAL(10,2) NOT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_services_reservation` (`reservation_id`),
+  CONSTRAINT `fk_services_reservation` FOREIGN KEY (`reservation_id`)
+    REFERENCES `reservations` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `chk_service_amount` CHECK (`amount` >= 0.00)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

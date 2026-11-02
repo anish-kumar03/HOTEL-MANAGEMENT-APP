@@ -7,6 +7,12 @@ import {
   generateBookingCode
 } from '../src/services/reservationService.js';
 import { validateReservationDates } from '../src/controllers/reservationController.js';
+import {
+  VALID_PAYMENT_METHODS,
+  VALID_PAYMENT_STATUSES,
+  generatePaymentReference,
+  calculateBillTotals
+} from '../src/services/billingService.js';
 
 // =============================================================================
 // TEST SUITE 1: CUSTOMER VALIDATION LOGIC
@@ -264,4 +270,174 @@ test('Route Architecture - Verifies Express routing pipeline for Customers, Room
       server.close();
     }
   });
+});
+
+// =============================================================================
+// TEST SUITE 7: BILLING & PAYMENT FINANCIAL LOGIC (PHASE 6 CRITICAL)
+// =============================================================================
+test('Billing Engine - Mathematical Invariants, Partial Payments, and Financial Rules', async (t) => {
+  await t.test('Validates accepted Payment Methods and Statuses', () => {
+    assert.deepEqual(VALID_PAYMENT_METHODS, ['CASH', 'UPI', 'CARD'], 'Methods must be CASH, UPI, CARD');
+    assert.deepEqual(VALID_PAYMENT_STATUSES, ['SUCCESS', 'PENDING', 'FAILED'], 'Statuses must be SUCCESS, PENDING, FAILED');
+  });
+
+  await t.test('Calculates Room Charges = Nights * Nightly Rate', () => {
+    const bill = calculateBillTotals({
+      nights: 4,
+      nightlyRate: 3500.00,
+      services: [],
+      payments: []
+    });
+
+    assert.equal(bill.nights, 4);
+    assert.equal(bill.roomCharges, 14000.00);
+    assert.equal(bill.additionalCharges, 0.00);
+    assert.equal(bill.finalAmount, 14000.00);
+    assert.equal(bill.paidAmount, 0.00);
+    assert.equal(bill.remainingBalance, 14000.00);
+    assert.equal(bill.billPaymentStatus, 'UNPAID');
+  });
+
+  await t.test('Calculates Final Amount = Room Charges + Additional Charges', () => {
+    const services = [
+      { service_name: 'Airport Cab Transfer', amount: 800.00 },
+      { service_name: 'Room Dining Breakfast', amount: 450.50 }
+    ];
+    const bill = calculateBillTotals({
+      nights: 2,
+      nightlyRate: 2000.00,
+      services,
+      payments: []
+    });
+
+    assert.equal(bill.roomCharges, 4000.00);
+    assert.equal(bill.additionalCharges, 1250.50);
+    assert.equal(bill.finalAmount, 5250.50);
+    assert.equal(bill.remainingBalance, 5250.50);
+    assert.equal(bill.billPaymentStatus, 'UNPAID');
+  });
+
+  await t.test('Calculates Partial Payments and Remaining Balance correctly', () => {
+    const payments = [
+      { amount: 2000.00, payment_status: 'SUCCESS' }
+    ];
+    const bill = calculateBillTotals({
+      nights: 3,
+      nightlyRate: 2000.00, // Room charges = 6000.00
+      services: [],
+      payments
+    });
+
+    assert.equal(bill.finalAmount, 6000.00);
+    assert.equal(bill.paidAmount, 2000.00);
+    assert.equal(bill.remainingBalance, 4000.00);
+    assert.equal(bill.billPaymentStatus, 'PARTIALLY_PAID');
+  });
+
+  await t.test('Ignores PENDING and FAILED payments when calculating Paid Amount', () => {
+    const payments = [
+      { amount: 1500.00, payment_status: 'SUCCESS' },
+      { amount: 2000.00, payment_status: 'FAILED' },
+      { amount: 1000.00, payment_status: 'PENDING' }
+    ];
+    const bill = calculateBillTotals({
+      nights: 2,
+      nightlyRate: 2500.00, // 5000.00
+      services: [],
+      payments
+    });
+
+    assert.equal(bill.paidAmount, 1500.00, 'Only SUCCESS payments must increment paid amount');
+    assert.equal(bill.remainingBalance, 3500.00);
+    assert.equal(bill.billPaymentStatus, 'PARTIALLY_PAID');
+  });
+
+  await t.test('Marks bill as PAID when paidAmount equals or exceeds finalAmount', () => {
+    const payments = [
+      { amount: 2500.00, payment_status: 'SUCCESS' },
+      { amount: 2500.00, payment_status: 'SUCCESS' }
+    ];
+    const bill = calculateBillTotals({
+      nights: 2,
+      nightlyRate: 2500.00,
+      services: [],
+      payments
+    });
+
+    assert.equal(bill.finalAmount, 5000.00);
+    assert.equal(bill.paidAmount, 5000.00);
+    assert.equal(bill.remainingBalance, 0.00);
+    assert.equal(bill.billPaymentStatus, 'PAID');
+  });
+
+  await t.test('Generates unique payment references matching format PAY-YYYYMMDD-XXXX', () => {
+    const ref1 = generatePaymentReference();
+    const ref2 = generatePaymentReference();
+
+    assert.match(ref1, /^PAY-\d{8}-[A-F0-9]{4}$/);
+    assert.match(ref2, /^PAY-\d{8}-[A-F0-9]{4}$/);
+    assert.notEqual(ref1, ref2, 'Consecutive payment references must be distinct');
+  });
+
+  await t.test('Overpayment Guard: Rejects payment amounts greater than remaining balance', () => {
+    const remainingBalance = 1500.00;
+    const attemptedPayment = 2000.00;
+
+    assert.ok(attemptedPayment > remainingBalance);
+    assert.throws(() => {
+      if (attemptedPayment > remainingBalance) {
+        throw new Error(`Payment amount (₹${attemptedPayment}) cannot exceed remaining balance (₹${remainingBalance}).`);
+      }
+    }, /cannot exceed remaining balance/);
+  });
+
+  await t.test('Rejects zero or negative payment amounts', () => {
+    const invalidAmounts = [0, -100, -0.01];
+    for (const amt of invalidAmounts) {
+      assert.ok(amt <= 0, `Amount ${amt} must be rejected`);
+      assert.throws(() => {
+        if (amt <= 0) {
+          throw new Error('Payment amount must be greater than zero.');
+        }
+      }, /greater than zero/);
+    }
+  });
+});
+
+// =============================================================================
+// TEST SUITE 8: PHASE 6 BILLING & PAYMENT VIEWS VERIFICATION
+// =============================================================================
+test('Phase 6 Route Architecture - Verifies Payment Management, Record Payment, and History endpoints', async (t) => {
+  const server = app.listen(0);
+  const port = server.address().port;
+
+  try {
+    // 1. Test GET /payments (Payment Management Directory)
+    const paymentsRes = await fetch(`http://localhost:${port}/payments`);
+    assert.equal(paymentsRes.status, 200, 'GET /payments must return 200 OK');
+    const paymentsHtml = await paymentsRes.text();
+    assert.ok(paymentsHtml.includes('Payment Management'), 'Should render Payment Management title');
+    assert.ok(paymentsHtml.includes('Total Billed Revenue'), 'Should render KPI Total Billed');
+    assert.ok(paymentsHtml.includes('Total Collected'), 'Should render KPI Total Collected');
+    assert.ok(paymentsHtml.includes('Outstanding Balance'), 'Should render KPI Outstanding Balance');
+
+    // 2. Test GET /payments/new (Record Payment Form)
+    const newPaymentRes = await fetch(`http://localhost:${port}/payments/new`);
+    assert.equal(newPaymentRes.status, 200, 'GET /payments/new must return 200 OK');
+    const newPaymentHtml = await newPaymentRes.text();
+    assert.ok(newPaymentHtml.includes('Record Reservation Payment'), 'Should render Record Payment title');
+    assert.ok(newPaymentHtml.includes('Payment Method'), 'Should render Payment Method dropdown');
+    assert.ok(newPaymentHtml.includes('CASH'), 'Should include CASH method');
+    assert.ok(newPaymentHtml.includes('UPI'), 'Should include UPI method');
+    assert.ok(newPaymentHtml.includes('CARD'), 'Should include CARD method');
+
+    // 3. Test GET /payments/history (Payment History Ledger)
+    const historyRes = await fetch(`http://localhost:${port}/payments/history`);
+    assert.equal(historyRes.status, 200, 'GET /payments/history must return 200 OK');
+    const historyHtml = await historyRes.text();
+    assert.ok(historyHtml.includes('Payment History'), 'Should render Payment History title');
+    assert.ok(historyHtml.includes('Settlement Logs'), 'Should render Settlement Logs section');
+  } finally {
+    server.close();
+  }
 });

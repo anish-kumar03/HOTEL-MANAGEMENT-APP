@@ -39,6 +39,14 @@
 
       <!-- Action Buttons -->
       <div class="d-flex flex-wrap gap-2">
+        <a href="/reservations/<%= reservation.id %>/invoice" class="btn btn-primary px-3">
+          <i class="bi bi-receipt me-1"></i>View Bill & Invoice
+        </a>
+
+        <a href="/payments/new?reservation_id=<%= reservation.id %>" class="btn btn-outline-success px-3">
+          <i class="bi bi-cash-stack me-1"></i>Record Payment
+        </a>
+
         <% if (reservation.status === 'confirmed' || reservation.status === 'pending') { %>
           <form action="/reservations/<%= reservation.id %>/checkin" method="POST">
             <button type="submit" class="btn btn-success px-3">
@@ -297,3 +305,4 @@
 </main>
 
 <%- include('../partials/footer') %>
+

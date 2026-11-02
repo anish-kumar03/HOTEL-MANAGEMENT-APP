@@ -1,0 +1,263 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="container my-5">
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/"><i class="bi bi-house-door"></i> Home</a></li>
+      <li class="breadcrumb-item"><a href="/reservations">Reservations</a></li>
+      <li class="breadcrumb-item"><a href="/reservations/<%= bill.reservation.id %>"><%= bill.reservation.booking_code %></a></li>
+      <li class="breadcrumb-item active" aria-current="page">Invoice Details</li>
+    </ol>
+  </nav>
+
+  <%- include('../partials/alerts') %>
+
+  <!-- Invoice Top Hero Card -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <h3 class="fw-bold mb-0 text-dark">
+            <i class="bi bi-receipt-cutoff text-primary me-2"></i>Folio / Invoice #INV-<%= bill.reservation.booking_code %>
+          </h3>
+          <% if (bill.calculation.billPaymentStatus === 'PAID') { %>
+            <span class="badge bg-success px-3 py-2 fs-6"><i class="bi bi-check-circle-fill me-1"></i>PAID IN FULL</span>
+          <% } else if (bill.calculation.billPaymentStatus === 'PARTIALLY_PAID') { %>
+            <span class="badge bg-warning text-dark px-3 py-2 fs-6"><i class="bi bi-clock-history me-1"></i>PARTIALLY PAID</span>
+          <% } else { %>
+            <span class="badge bg-danger px-3 py-2 fs-6"><i class="bi bi-exclamation-octagon-fill me-1"></i>UNPAID</span>
+          <% } %>
+        </div>
+        <p class="text-muted small mb-0">
+          Booking Reference: <strong class="text-dark"><%= bill.reservation.booking_code %></strong> &bull; 
+          Generated on <%= new Date().toLocaleDateString('en-GB') %>
+        </p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="d-flex flex-wrap gap-2">
+        <% if (bill.calculation.remainingBalance > 0) { %>
+          <a href="/payments/new?reservation_id=<%= bill.reservation.id %>" class="btn btn-primary px-3 shadow-sm">
+            <i class="bi bi-cash-stack me-1"></i>Record Payment (₹<%= bill.calculation.remainingBalance.toFixed(2) %>)
+          </a>
+        <% } %>
+        <button type="button" class="btn btn-outline-dark px-3" data-bs-toggle="modal" data-bs-target="#addServiceModal">
+          <i class="bi bi-plus-circle me-1"></i>Add Additional Service
+        </button>
+        <button onclick="window.print()" class="btn btn-outline-secondary px-3">
+          <i class="bi bi-printer me-1"></i>Print Invoice
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Guest & Stay Metadata -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white py-3">
+          <h6 class="card-title mb-0 fw-semibold text-uppercase small text-muted">Billed To (Customer Details)</h6>
+        </div>
+        <div class="card-body p-3">
+          <h5 class="fw-bold text-dark mb-1"><%= bill.reservation.customer_name %></h5>
+          <div class="text-muted small mb-1"><i class="bi bi-envelope me-1"></i><%= bill.reservation.customer_email %></div>
+          <div class="text-muted small mb-1"><i class="bi bi-telephone me-1"></i><%= bill.reservation.customer_phone %></div>
+          <div class="text-muted small"><i class="bi bi-geo-alt me-1"></i><%= bill.reservation.customer_address || 'Address not recorded' %></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white py-3">
+          <h6 class="card-title mb-0 fw-semibold text-uppercase small text-muted">Accommodation & Stay Details</h6>
+        </div>
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted small">Allocated Room:</span>
+            <strong>Room <%= bill.reservation.room_number %> (<%= bill.reservation.room_category %>)</strong>
+          </div>
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted small">Stay Duration:</span>
+            <span><%= bill.reservation.check_in_date %> to <%= bill.reservation.check_out_date %> (<strong><%= bill.calculation.nights %> Nights</strong>)</span>
+          </div>
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted small">Occupancy:</span>
+            <span><%= bill.reservation.guests_count %> Guests</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted small">Booking Status:</span>
+            <span class="badge bg-light text-secondary border"><%= bill.reservation.reservation_status %></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Itemized Invoice Charges Table -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+      <h5 class="card-title mb-0 fw-semibold">
+        <i class="bi bi-list-check text-primary me-2"></i>Itemized Bill Breakdown
+      </h5>
+      <span class="badge bg-light text-secondary border">Server Verified Calculation</span>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th scope="col" class="ps-4">Description</th>
+              <th scope="col" class="text-center">Rate / Unit</th>
+              <th scope="col" class="text-center">Duration / Quantity</th>
+              <th scope="col" class="text-end pe-4">Amount (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Room Charges -->
+            <tr>
+              <td class="ps-4">
+                <div class="fw-bold text-dark">Room Tariff: Room <%= bill.reservation.room_number %></div>
+                <div class="text-muted small"><%= bill.reservation.room_category %> accommodation tariff snapshot</div>
+              </td>
+              <td class="text-center">₹<%= Number(bill.calculation.nightlyRate).toFixed(2) %></td>
+              <td class="text-center"><%= bill.calculation.nights %> <%= bill.calculation.nights === 1 ? 'Night' : 'Nights' %></td>
+              <td class="text-end pe-4 fw-bold">₹<%= Number(bill.calculation.roomCharges).toFixed(2) %></td>
+            </tr>
+
+            <!-- Additional Services -->
+            <% if (bill.services && bill.services.length > 0) { %>
+              <% bill.services.forEach(service => { %>
+                <tr>
+                  <td class="ps-4">
+                    <div class="fw-semibold text-dark"><i class="bi bi-tag text-muted me-1"></i><%= service.service_name %></div>
+                    <div class="text-muted small">Added on <%= service.created_at %></div>
+                  </td>
+                  <td class="text-center">₹<%= Number(service.amount).toFixed(2) %></td>
+                  <td class="text-center">1</td>
+                  <td class="text-end pe-4 fw-semibold">₹<%= Number(service.amount).toFixed(2) %></td>
+                </tr>
+              <% }); %>
+            <% } %>
+          </tbody>
+          <!-- Totals Footer -->
+          <tfoot class="table-light">
+            <tr>
+              <td colspan="3" class="text-end fw-semibold">Room Charges Subtotal:</td>
+              <td class="text-end pe-4 fw-bold">₹<%= Number(bill.calculation.roomCharges).toFixed(2) %></td>
+            </tr>
+            <tr>
+              <td colspan="3" class="text-end fw-semibold">Additional Services Subtotal:</td>
+              <td class="text-end pe-4 fw-bold">₹<%= Number(bill.calculation.additionalCharges).toFixed(2) %></td>
+            </tr>
+            <tr class="table-active fs-6">
+              <td colspan="3" class="text-end fw-bold text-dark">Final Bill Amount:</td>
+              <td class="text-end pe-4 fw-bold text-dark">₹<%= Number(bill.calculation.finalAmount).toFixed(2) %></td>
+            </tr>
+            <tr>
+              <td colspan="3" class="text-end fw-bold text-success">Total Amount Paid:</td>
+              <td class="text-end pe-4 fw-bold text-success">- ₹<%= Number(bill.calculation.paidAmount).toFixed(2) %></td>
+            </tr>
+            <tr class="fs-5">
+              <td colspan="3" class="text-end fw-bold text-danger">Remaining Balance Due:</td>
+              <td class="text-end pe-4 fw-bold text-danger">₹<%= Number(bill.calculation.remainingBalance).toFixed(2) %></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recorded Payments Ledger for this Invoice -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+      <h5 class="card-title mb-0 fw-semibold">
+        <i class="bi bi-clock-history text-primary me-2"></i>Recorded Payment Settlements
+      </h5>
+      <span class="badge bg-secondary-subtle text-secondary"><%= bill.payments.length %> payment record(s)</span>
+    </div>
+    <div class="card-body p-0">
+      <% if (bill.payments.length === 0) { %>
+        <div class="text-center py-4 text-muted">
+          <i class="bi bi-wallet2 fs-2 d-block mb-1"></i>
+          No payments have been recorded for this reservation yet.
+        </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th scope="col" class="ps-4">Receipt Ref</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Method</th>
+                <th scope="col">Status</th>
+                <th scope="col">Transaction ID</th>
+                <th scope="col">Date</th>
+                <th scope="col" class="text-end pe-4">Receipt</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% bill.payments.forEach(p => { %>
+                <tr>
+                  <td class="ps-4 fw-bold font-monospace"><%= p.payment_reference %></td>
+                  <td class="fw-bold text-success">₹<%= Number(p.amount).toFixed(2) %></td>
+                  <td>
+                    <span class="badge bg-light text-dark border"><%= p.payment_method %></span>
+                  </td>
+                  <td>
+                    <span class="badge <%= p.payment_status === 'SUCCESS' ? 'bg-success' : 'bg-warning text-dark' %>">
+                      <%= p.payment_status %>
+                    </span>
+                  </td>
+                  <td><span class="text-muted small"><%= p.transaction_id || 'N/A' %></span></td>
+                  <td><span class="text-muted small"><%= p.payment_date %></span></td>
+                  <td class="text-end pe-4">
+                    <a href="/payments/<%= p.id %>/receipt" class="btn btn-sm btn-outline-dark" target="_blank">
+                      <i class="bi bi-printer me-1"></i>Receipt
+                    </a>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Add Additional Service Modal -->
+  <div class="modal fade text-start" id="addServiceModal" tabindex="-1" aria-labelledby="serviceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-dark text-white">
+          <h5 class="modal-title" id="serviceModalLabel">
+            <i class="bi bi-plus-circle me-2"></i>Add Additional Service Charge
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="/reservations/<%= bill.reservation.id %>/services" method="POST">
+          <div class="modal-body p-4">
+            <div class="mb-3">
+              <label for="serviceName" class="form-label fw-semibold">Service Name / Item Description <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="serviceName" name="serviceName" placeholder="e.g. Airport Transfer, Laundry, Extra Bed, Buffet Breakfast" required>
+            </div>
+            <div class="mb-3">
+              <label for="amount" class="form-label fw-semibold">Charge Amount (₹) <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text">₹</span>
+                <input type="number" step="0.01" min="1" class="form-control" id="amount" name="amount" placeholder="500.00" required>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Add Service to Bill</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

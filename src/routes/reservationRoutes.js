@@ -31,3 +31,4 @@ router.post('/:id/checkout', checkOut);
 router.post('/:id/cancel', cancel);
 
 export default router;
+

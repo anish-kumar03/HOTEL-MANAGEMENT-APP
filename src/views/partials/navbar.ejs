@@ -29,6 +29,11 @@
             <i class="bi bi-journal-bookmark-fill me-1"></i>Reservations
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link <%= typeof title !== 'undefined' && (title.includes('Payment') || title.includes('Billing') || title.includes('Invoice')) ? 'active' : '' %>" href="/payments">
+            <i class="bi bi-credit-card-fill me-1"></i>Payments & Billing
+          </a>
+        </li>
       </ul>
       <ul class="navbar-nav ms-auto align-items-center gap-2">
         <li class="nav-item">
@@ -38,7 +43,7 @@
         </li>
         <li class="nav-item ms-lg-2">
           <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill">
-            <i class="bi bi-check-circle-fill me-1"></i>Phase 5 Active
+            <i class="bi bi-check-circle-fill me-1"></i>Phase 6 Active
           </span>
         </li>
       </ul>
