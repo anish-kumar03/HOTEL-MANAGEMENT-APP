@@ -21,6 +21,7 @@ import assert from 'node:assert/strict';
 import app from '../src/app.js';
 import authService, { hashPassword, comparePassword, validateLoginInput } from '../src/services/authService.js';
 import { env } from '../src/config/env.js';
+import { pool } from '../src/config/db.js';
 
 // =============================================================================
 // SUITE 1: PASSWORD HASHING & BCRYPT VERIFICATION
@@ -93,6 +94,12 @@ test('Phase 9 Security - HTTP Authentication & Route Protection', async (t) => {
   const baseUrl = `http://localhost:${port}`;
 
   let sessionCookie = null;
+
+  t.after(async () => {
+    try {
+      await pool.end();
+    } catch (e) {}
+  });
 
   try {
     // -------------------------------------------------------------------------

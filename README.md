@@ -264,7 +264,7 @@ To satisfy MCA Database Management System subject requirements, the system imple
 - **`sp_identify_overdue_checkouts(p_reference_date DATE)`**: Stored procedure declaring an explicit cursor (`DECLARE cur_overdue CURSOR FOR ...`) and a standard `DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_done = 1;` loop. Iterates row-by-row over guests still in `checked_in` status whose scheduled `check_out_date < p_reference_date`, computes days overdue, checks uncollected balances, and logs alerts into `tmp_overdue_checkouts`.
 
 ### 5. Audit Logging Trigger
-- **`trg_reservations_status_change`**: `AFTER UPDATE ON reservations FOR EACH ROW`. Fires automatically when `OLD.status <> NEW.status` and logs audit trail records (`reservation_id`, `old_status`, `new_status`, `changed_at`, `remarks`) directly into `reservation_status_history`.
+- **`trg_reservations_status_change`**: `AFTER UPDATE ON reservations FOR EACH ROW`. Fires automatically when `OLD.status <> NEW.status` and logs audit trail records (`reservation_id`, `previous_status`, `new_status`, `change_timestamp`, `remarks`) directly into `reservation_status_history`.
 
 ### 6. Interactive MySQL Workbench Execution Examples
 ```sql
