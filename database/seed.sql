@@ -34,29 +34,30 @@ INSERT INTO `customers` (`id`, `name`, `email`, `phone`, `address`) VALUES
 
 -- -----------------------------------------------------------------------------
 -- 2. Insert 15 Hotel Rooms (Across 4 Categories)
--- Categories: Standard Single, Deluxe Double, Executive Suite, Presidential Suite
+-- Categories: Standard, Deluxe, Premium, Suite
+-- Operational Status: ACTIVE, MAINTENANCE
 -- -----------------------------------------------------------------------------
 INSERT INTO `rooms` (`id`, `room_number`, `category`, `capacity`, `price_per_night`, `status`) VALUES
--- 1st Floor: Standard Single & Deluxe Double
-(1,  '101', 'Standard Single', 1, 1500.00, 'available'),
-(2,  '102', 'Standard Single', 1, 1500.00, 'available'),
-(3,  '103', 'Standard Single', 1, 1500.00, 'cleaning'),
-(4,  '104', 'Deluxe Double',   2, 2800.00, 'occupied'),
-(5,  '105', 'Deluxe Double',   2, 2800.00, 'available'),
+-- 1st Floor: Standard & Deluxe
+(1,  '101', 'Standard', 1, 1500.00, 'ACTIVE'),
+(2,  '102', 'Standard', 1, 1500.00, 'ACTIVE'),
+(3,  '103', 'Standard', 1, 1500.00, 'MAINTENANCE'),
+(4,  '104', 'Deluxe',   2, 2800.00, 'ACTIVE'),
+(5,  '105', 'Deluxe',   2, 2800.00, 'ACTIVE'),
 
--- 2nd Floor: Deluxe Double & Executive Suite
-(6,  '201', 'Deluxe Double',   2, 2800.00, 'reserved'),
-(7,  '202', 'Deluxe Double',   2, 2800.00, 'available'),
-(8,  '203', 'Deluxe Double',   2, 2800.00, 'available'),
-(9,  '204', 'Executive Suite', 3, 5000.00, 'occupied'),
-(10, '205', 'Executive Suite', 3, 5000.00, 'available'),
+-- 2nd Floor: Deluxe & Premium
+(6,  '201', 'Deluxe',   2, 2800.00, 'ACTIVE'),
+(7,  '202', 'Deluxe',   2, 2800.00, 'ACTIVE'),
+(8,  '203', 'Deluxe',   2, 2800.00, 'ACTIVE'),
+(9,  '204', 'Premium',  3, 5000.00, 'ACTIVE'),
+(10, '205', 'Premium',  3, 5000.00, 'ACTIVE'),
 
--- 3rd Floor: Executive Suite & Presidential Suite
-(11, '301', 'Executive Suite', 3, 5000.00, 'available'),
-(12, '302', 'Executive Suite', 3, 5000.00, 'maintenance'),
-(13, '303', 'Presidential Suite', 4, 9500.00, 'available'),
-(14, '304', 'Presidential Suite', 4, 9500.00, 'reserved'),
-(15, '305', 'Presidential Suite', 4, 9500.00, 'available');
+-- 3rd Floor: Premium & Suite
+(11, '301', 'Premium',  3, 5000.00, 'ACTIVE'),
+(12, '302', 'Premium',  3, 5000.00, 'MAINTENANCE'),
+(13, '303', 'Suite',    4, 9500.00, 'ACTIVE'),
+(14, '304', 'Suite',    4, 9500.00, 'ACTIVE'),
+(15, '305', 'Suite',    4, 9500.00, 'ACTIVE');
 
 -- -----------------------------------------------------------------------------
 -- 3. Insert Date-Relative Sample Reservations

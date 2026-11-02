@@ -1,0 +1,111 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/"><i class="bi bi-house-door"></i> Home</a></li>
+          <li class="breadcrumb-item"><a href="/customers">Customers</a></li>
+          <li class="breadcrumb-item"><a href="/customers/<%= customer.id %>"><%= customer.name %></a></li>
+          <li class="breadcrumb-item active" aria-current="page">Edit</li>
+        </ol>
+      </nav>
+
+      <%- include('../partials/alerts') %>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+          <h4 class="card-title mb-0 fw-bold">
+            <i class="bi bi-pencil-square text-primary me-2"></i>Edit Customer #<%= customer.id %>
+          </h4>
+          <span class="badge bg-light text-secondary border">
+            Registered: <%= customer.registration_date %>
+          </span>
+        </div>
+        <div class="card-body p-4">
+          <form action="/customers/<%= customer.id %>/edit" method="POST" novalidate>
+            <!-- Full Name -->
+            <div class="mb-3">
+              <label for="name" class="form-label fw-semibold">
+                Full Name <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="name" 
+                  name="name" 
+                  value="<%= typeof formData !== 'undefined' && formData.name ? formData.name : customer.name %>"
+                  required
+                >
+              </div>
+            </div>
+
+            <!-- Email & Phone Grid -->
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label for="email" class="form-label fw-semibold">
+                  Email Address <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                  <input 
+                    type="email" 
+                    class="form-control" 
+                    id="email" 
+                    name="email" 
+                    value="<%= typeof formData !== 'undefined' && formData.email ? formData.email : customer.email %>"
+                    required
+                  >
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <label for="phone" class="form-label fw-semibold">
+                  Phone Number <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    id="phone" 
+                    name="phone" 
+                    value="<%= typeof formData !== 'undefined' && formData.phone ? formData.phone : customer.phone %>"
+                    required
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Address -->
+            <div class="mb-4">
+              <label for="address" class="form-label fw-semibold">Residential Address</label>
+              <textarea 
+                class="form-control" 
+                id="address" 
+                name="address" 
+                rows="3"
+              ><%= typeof formData !== 'undefined' && formData.address ? formData.address : customer.address || '' %></textarea>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="d-flex justify-content-end gap-2 border-top pt-3">
+              <a href="/customers/<%= customer.id %>" class="btn btn-outline-secondary px-4">
+                <i class="bi bi-x-circle me-1"></i>Cancel
+              </a>
+              <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-check2-circle me-1"></i>Update Customer
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

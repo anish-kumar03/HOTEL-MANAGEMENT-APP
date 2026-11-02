@@ -8,20 +8,35 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="mainNavbar">
+      <ul class="navbar-nav me-auto ms-lg-3">
+        <li class="nav-item">
+          <a class="nav-link <%= typeof title !== 'undefined' && title.includes('Home') ? 'active' : '' %>" href="/">
+            <i class="bi bi-house-door me-1"></i>Home
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link <%= typeof title !== 'undefined' && title.includes('Customer') ? 'active' : '' %>" href="/customers">
+            <i class="bi bi-people-fill me-1"></i>Customers
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link <%= typeof title !== 'undefined' && title.includes('Room') ? 'active' : '' %>" href="/rooms">
+            <i class="bi bi-door-open-fill me-1"></i>Rooms
+          </a>
+        </li>
+      </ul>
       <ul class="navbar-nav ms-auto align-items-center gap-2">
         <li class="nav-item">
-          <a class="nav-link active" href="/"><i class="bi bi-house-door me-1"></i>Home</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/health" target="_blank"><i class="bi bi-activity me-1"></i>Health API</a>
+          <a class="nav-link" href="/health" target="_blank">
+            <i class="bi bi-activity me-1"></i>Health API
+          </a>
         </li>
         <li class="nav-item ms-lg-2">
-          <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill">
-            <i class="bi bi-check-circle-fill me-1"></i>Phase 2 Active
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill">
+            <i class="bi bi-check-circle-fill me-1"></i>Phase 4 Active
           </span>
         </li>
       </ul>
     </div>
   </div>
 </nav>
-

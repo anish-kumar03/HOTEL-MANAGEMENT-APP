@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS `rooms` (
   `category` VARCHAR(50) NOT NULL,
   `capacity` TINYINT UNSIGNED NOT NULL DEFAULT 2,
   `price_per_night` DECIMAL(10,2) NOT NULL,
-  `status` ENUM('available', 'occupied', 'reserved', 'maintenance', 'cleaning') NOT NULL DEFAULT 'available',
+  `status` ENUM('ACTIVE', 'MAINTENANCE') NOT NULL DEFAULT 'ACTIVE',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

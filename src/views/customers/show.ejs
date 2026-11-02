@@ -1,0 +1,177 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="container my-5">
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/"><i class="bi bi-house-door"></i> Home</a></li>
+      <li class="breadcrumb-item"><a href="/customers">Customers</a></li>
+      <li class="breadcrumb-item active" aria-current="page"><%= customer.name %></li>
+    </ol>
+  </nav>
+
+  <%- include('../partials/alerts') %>
+
+  <!-- Customer Overview Card -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center p-4">
+          <div class="bg-primary-subtle text-primary rounded-circle d-inline-flex p-4 mb-3">
+            <i class="bi bi-person-circle display-4"></i>
+          </div>
+          <h4 class="fw-bold mb-1"><%= customer.name %></h4>
+          <span class="badge bg-secondary-subtle text-secondary mb-3">Customer ID #<%= customer.id %></span>
+
+          <div class="d-grid gap-2 mt-3">
+            <a href="/customers/<%= customer.id %>/edit" class="btn btn-outline-primary">
+              <i class="bi bi-pencil me-1"></i>Edit Profile
+            </a>
+            <button 
+              type="button" 
+              class="btn btn-outline-danger" 
+              data-bs-toggle="modal" 
+              data-bs-target="#deleteCustomerModal"
+            >
+              <i class="bi bi-trash me-1"></i>Delete Customer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white py-3">
+          <h5 class="card-title mb-0 fw-semibold">
+            <i class="bi bi-info-circle text-primary me-2"></i>Customer Information
+          </h5>
+        </div>
+        <div class="card-body p-4">
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <div class="text-muted small">Full Name</div>
+              <div class="fw-semibold fs-6"><%= customer.name %></div>
+            </div>
+            <div class="col-sm-6">
+              <div class="text-muted small">Email Address</div>
+              <div class="fw-semibold fs-6">
+                <a href="mailto:<%= customer.email %>" class="text-decoration-none">
+                  <%= customer.email %>
+                </a>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="text-muted small">Phone Number</div>
+              <div class="fw-semibold fs-6"><%= customer.phone %></div>
+            </div>
+            <div class="col-sm-6">
+              <div class="text-muted small">Registration Date</div>
+              <div class="fw-semibold fs-6"><%= customer.registration_date %></div>
+            </div>
+            <div class="col-12">
+              <div class="text-muted small">Residential Address</div>
+              <div class="fw-normal text-secondary mt-1">
+                <%= customer.address || 'No residential address recorded.' %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Related Reservations Table -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+      <h5 class="card-title mb-0 fw-semibold">
+        <i class="bi bi-journal-bookmark-fill text-primary me-2"></i>Reservation History
+        <span class="badge bg-secondary-subtle text-secondary ms-2"><%= reservations.length %> total</span>
+      </h5>
+    </div>
+    <div class="card-body p-0">
+      <% if (reservations.length === 0) { %>
+        <div class="text-center py-4 text-muted">
+          <i class="bi bi-calendar-x fs-1 d-block mb-2 text-muted"></i>
+          This customer has no reservation records.
+        </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th scope="col" class="ps-4">Booking Code</th>
+                <th scope="col">Room</th>
+                <th scope="col">Check-In</th>
+                <th scope="col">Check-Out</th>
+                <th scope="col">Nightly Rate</th>
+                <th scope="col">Total Amount</th>
+                <th scope="col" class="text-end pe-4">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% reservations.forEach(res => { %>
+                <tr>
+                  <td class="ps-4 fw-semibold">
+                    <span class="badge bg-dark-subtle text-dark"><%= res.booking_code %></span>
+                  </td>
+                  <td>
+                    <strong>Room <%= res.room_number %></strong> 
+                    <span class="text-muted small">(<%= res.room_category %>)</span>
+                  </td>
+                  <td><%= res.check_in_date %></td>
+                  <td><%= res.check_out_date %></td>
+                  <td>₹<%= Number(res.nightly_rate).toFixed(2) %></td>
+                  <td class="fw-bold">₹<%= Number(res.total_amount).toFixed(2) %></td>
+                  <td class="text-end pe-4">
+                    <% if (res.status === 'checked_in') { %>
+                      <span class="badge bg-success">Checked In</span>
+                    <% } else if (res.status === 'confirmed') { %>
+                      <span class="badge bg-primary">Confirmed</span>
+                    <% } else if (res.status === 'checked_out') { %>
+                      <span class="badge bg-secondary">Checked Out</span>
+                    <% } else if (res.status === 'pending') { %>
+                      <span class="badge bg-warning text-dark">Pending</span>
+                    <% } else { %>
+                      <span class="badge bg-danger"><%= res.status %></span>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Delete Modal -->
+  <div class="modal fade text-start" id="deleteCustomerModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title" id="deleteModalLabel">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Deletion
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <p class="mb-2">Are you sure you want to delete customer <strong>"<%= customer.name %>" (ID: #<%= customer.id %>)</strong>?</p>
+          <div class="alert alert-warning small mb-0">
+            <i class="bi bi-info-circle me-1"></i> Note: Deletion is rejected if this customer has any reservation history.
+          </div>
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <form action="/customers/<%= customer.id %>/delete" method="POST" class="d-inline">
+            <button type="submit" class="btn btn-danger">
+              <i class="bi bi-trash me-1"></i>Delete Permanently
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,211 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="container my-5">
+  <%- include('../partials/alerts') %>
+
+  <!-- Header & Actions -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+      <h2 class="fw-bold mb-1"><i class="bi bi-door-open-fill text-primary me-2"></i>Room Management</h2>
+      <p class="text-muted mb-0">View, search, filter, add, update, and manage hotel room inventory.</p>
+    </div>
+    <div>
+      <a href="/rooms/new" class="btn btn-primary px-3 py-2 shadow-sm">
+        <i class="bi bi-plus-circle me-2"></i>Add Room
+      </a>
+    </div>
+  </div>
+
+  <!-- Search & Filter Toolbar -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-3">
+      <form action="/rooms" method="GET" class="row g-2 align-items-center">
+        <!-- Search by Room Number -->
+        <div class="col-md-4">
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0">
+              <i class="bi bi-search text-muted"></i>
+            </span>
+            <input 
+              type="text" 
+              name="search" 
+              class="form-control border-start-0 bg-light" 
+              placeholder="Search by room number..." 
+              value="<%= typeof filters !== 'undefined' && filters.search ? filters.search : '' %>"
+            >
+          </div>
+        </div>
+
+        <!-- Filter by Category -->
+        <div class="col-md-3">
+          <select name="category" class="form-select bg-light">
+            <option value="">All Categories</option>
+            <% categories.forEach(cat => { %>
+              <option value="<%= cat %>" <%= typeof filters !== 'undefined' && filters.category === cat ? 'selected' : '' %>>
+                <%= cat %>
+              </option>
+            <% }); %>
+          </select>
+        </div>
+
+        <!-- Filter by Status -->
+        <div class="col-md-3">
+          <select name="status" class="form-select bg-light">
+            <option value="">All Statuses</option>
+            <% statuses.forEach(st => { %>
+              <option value="<%= st %>" <%= typeof filters !== 'undefined' && filters.status === st ? 'selected' : '' %>>
+                <%= st %>
+              </option>
+            <% }); %>
+          </select>
+        </div>
+
+        <!-- Submit & Reset -->
+        <div class="col-md-2 d-flex gap-2">
+          <button type="submit" class="btn btn-dark w-100">
+            <i class="bi bi-funnel-fill me-1"></i>Filter
+          </button>
+          <% if (typeof filters !== 'undefined' && (filters.search || filters.category || filters.status)) { %>
+            <a href="/rooms" class="btn btn-outline-secondary" title="Reset Filters">
+              <i class="bi bi-arrow-counterclockwise"></i>
+            </a>
+          <% } %>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Rooms Table -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+      <h5 class="card-title mb-0 fw-semibold">
+        Rooms Inventory 
+        <span class="badge bg-secondary-subtle text-secondary ms-2"><%= rooms.length %> record(s)</span>
+      </h5>
+    </div>
+    <div class="card-body p-0">
+      <% if (rooms.length === 0) { %>
+        <div class="text-center py-5">
+          <i class="bi bi-door-closed display-4 text-muted mb-3 d-block"></i>
+          <h5 class="fw-semibold text-secondary">No rooms found</h5>
+          <p class="text-muted small">
+            <% if (typeof filters !== 'undefined' && (filters.search || filters.category || filters.status)) { %>
+              No rooms matched your active filter criteria.
+            <% } else { %>
+              There are currently no room records in the database.
+            <% } %>
+          </p>
+          <a href="/rooms/new" class="btn btn-sm btn-primary mt-2">
+            <i class="bi bi-plus-circle me-1"></i>Add First Room
+          </a>
+        </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th scope="col" class="ps-4">Room ID</th>
+                <th scope="col">Room Number</th>
+                <th scope="col">Category</th>
+                <th scope="col">Capacity</th>
+                <th scope="col">Price / Night</th>
+                <th scope="col">Operational Status</th>
+                <th scope="col" class="text-end pe-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% rooms.forEach(room => { %>
+                <tr>
+                  <td class="ps-4 fw-semibold text-secondary">#<%= room.id %></td>
+                  <td>
+                    <span class="fs-5 fw-bold text-dark">
+                      <i class="bi bi-door-closed text-primary me-1"></i><%= room.room_number %>
+                    </span>
+                  </td>
+                  <td>
+                    <% if (room.category === 'Presidential' || room.category === 'Suite') { %>
+                      <span class="badge bg-dark px-3 py-1"><i class="bi bi-stars text-warning me-1"></i><%= room.category %></span>
+                    <% } else if (room.category === 'Premium') { %>
+                      <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1"><%= room.category %></span>
+                    <% } else if (room.category === 'Deluxe') { %>
+                      <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-1"><%= room.category %></span>
+                    <% } else { %>
+                      <span class="badge bg-light text-secondary border px-3 py-1"><%= room.category %></span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <span class="text-secondary small">
+                      <i class="bi bi-person-fill text-muted me-1"></i><%= room.capacity %> <%= room.capacity === 1 ? 'Guest' : 'Guests' %>
+                    </span>
+                  </td>
+                  <td>
+                    <span class="fw-bold text-dark fs-6">₹<%= Number(room.price_per_night).toFixed(2) %></span>
+                    <small class="text-muted">/ night</small>
+                  </td>
+                  <td>
+                    <% if (room.status === 'ACTIVE') { %>
+                      <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1">
+                        <i class="bi bi-check-circle-fill me-1"></i>ACTIVE
+                      </span>
+                    <% } else { %>
+                      <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1">
+                        <i class="bi bi-tools me-1"></i>MAINTENANCE
+                      </span>
+                    <% } %>
+                  </td>
+                  <td class="text-end pe-4">
+                    <div class="btn-group btn-group-sm">
+                      <a href="/rooms/<%= room.id %>/edit" class="btn btn-outline-secondary" title="Edit Room">
+                        <i class="bi bi-pencil"></i>
+                      </a>
+                      <button 
+                        type="button" 
+                        class="btn btn-outline-danger" 
+                        title="Delete Room"
+                        data-bs-toggle="modal" 
+                        data-bs-target="#deleteRoomModal<%= room.id %>"
+                      >
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+
+                    <!-- Delete Confirmation Modal -->
+                    <div class="modal fade text-start" id="deleteRoomModal<%= room.id %>" tabindex="-1" aria-labelledby="roomModalLabel<%= room.id %>" aria-hidden="true">
+                      <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow">
+                          <div class="modal-header bg-danger text-white">
+                            <h5 class="modal-title" id="roomModalLabel<%= room.id %>">
+                              <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Deletion
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                          </div>
+                          <div class="modal-body p-4">
+                            <p class="mb-2">Are you sure you want to delete <strong>Room "<%= room.room_number %>" (<%= room.category %>)</strong>?</p>
+                            <div class="alert alert-warning small mb-0">
+                              <i class="bi bi-info-circle me-1"></i> Note: Deletion will be rejected if this room has any historical or upcoming reservations.
+                            </div>
+                          </div>
+                          <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <form action="/rooms/<%= room.id %>/delete" method="POST" class="d-inline">
+                              <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash me-1"></i>Delete Permanently
+                              </button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>
