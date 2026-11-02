@@ -37,3 +37,4 @@ router.get('/payment-history', showPaymentHistoryReport);
 router.get('/cancelled-reservations', showCancelledReservationReport);
 
 export default router;
+

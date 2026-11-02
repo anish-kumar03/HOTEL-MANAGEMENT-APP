@@ -1,68 +1,167 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-  <div class="container">
-    <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="/">
-      <i class="bi bi-buildings-fill text-warning fs-4"></i>
-      <span>HRMS <small class="fw-normal text-muted fs-6">| Hotel Management</small></span>
+<!-- Fixed Left Sidebar Navigation -->
+<aside class="app-sidebar" id="appSidebar">
+  <!-- Brand Header -->
+  <div class="sidebar-header">
+    <a href="/" class="sidebar-brand">
+      <div class="sidebar-brand-icon">
+        <i class="bi bi-buildings-fill"></i>
+      </div>
+      <div class="sidebar-brand-text">
+        <span class="sidebar-brand-name">GRAND HORIZON</span>
+        <span class="sidebar-brand-tagline">HRMS Admin Suite</span>
+      </div>
     </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="mainNavbar">
-      <ul class="navbar-nav me-auto ms-lg-3">
-        <li class="nav-item">
-          <a class="nav-link <%= typeof title !== 'undefined' && (title.includes('Dashboard') || title.includes('Home')) ? 'active' : '' %>" href="/">
-            <i class="bi bi-speedometer2 me-1"></i>Dashboard
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link <%= typeof title !== 'undefined' && title.includes('Customer') && !title.includes('Report') ? 'active' : '' %>" href="/customers">
-            <i class="bi bi-people-fill me-1"></i>Customers
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link <%= typeof title !== 'undefined' && title.includes('Room') && !title.includes('Report') ? 'active' : '' %>" href="/rooms">
-            <i class="bi bi-door-open-fill me-1"></i>Rooms
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link <%= typeof title !== 'undefined' && (title.includes('Reservation') || title.includes('Booking')) && !title.includes('Report') ? 'active' : '' %>" href="/reservations">
-            <i class="bi bi-journal-bookmark-fill me-1"></i>Reservations
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link <%= typeof title !== 'undefined' && (title.includes('Payment') || title.includes('Billing') || title.includes('Invoice')) && !title.includes('Report') ? 'active' : '' %>" href="/payments">
-            <i class="bi bi-credit-card-fill me-1"></i>Payments & Billing
-          </a>
-        </li>
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle <%= typeof title !== 'undefined' && title.includes('Report') ? 'active' : '' %>" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-file-earmark-bar-graph-fill me-1"></i>Reports
-          </a>
-          <ul class="dropdown-menu dropdown-menu-dark shadow" aria-labelledby="reportsDropdown">
-            <li><a class="dropdown-item fw-bold" href="/reports"><i class="bi bi-grid-fill me-2 text-warning"></i>All Reports Portal</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="/reports/daily-reservations"><i class="bi bi-calendar2-day me-2 text-info"></i>1. Daily Reservations</a></li>
-            <li><a class="dropdown-item" href="/reports/monthly-reservations"><i class="bi bi-calendar2-month me-2 text-primary"></i>2. Monthly Reservations</a></li>
-            <li><a class="dropdown-item" href="/reports/customer-bookings"><i class="bi bi-person-lines-fill me-2 text-success"></i>3. Customer Bookings</a></li>
-            <li><a class="dropdown-item" href="/reports/room-availability"><i class="bi bi-calendar-check me-2 text-warning"></i>4. Room Availability</a></li>
-            <li><a class="dropdown-item" href="/reports/monthly-revenue"><i class="bi bi-graph-up-arrow me-2 text-success"></i>5. Monthly Revenue</a></li>
-            <li><a class="dropdown-item" href="/reports/payment-history"><i class="bi bi-credit-card-2-back me-2 text-info"></i>6. Payment History</a></li>
-            <li><a class="dropdown-item" href="/reports/cancelled-reservations"><i class="bi bi-x-circle me-2 text-danger"></i>7. Cancelled Reservations</a></li>
-          </ul>
-        </li>
-      </ul>
-      <ul class="navbar-nav ms-auto align-items-center gap-2">
-        <li class="nav-item">
-          <a class="nav-link" href="/health" target="_blank">
-            <i class="bi bi-activity me-1"></i>Health API
-          </a>
-        </li>
-        <li class="nav-item ms-lg-2">
-          <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill">
-            <i class="bi bi-check-circle-fill me-1"></i>Phase 7 Active
-          </span>
-        </li>
-      </ul>
+  </div>
+
+  <!-- Navigation Links -->
+  <div class="sidebar-nav-container">
+    <div class="sidebar-nav-group-title">Main Operations</div>
+    <ul class="sidebar-nav">
+      <!-- 1. Dashboard -->
+      <li class="sidebar-nav-item">
+        <a href="/" class="sidebar-link <%= typeof title !== 'undefined' && (title.includes('Dashboard') || title.includes('Home')) ? 'active' : '' %>">
+          <i class="bi bi-speedometer2"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+
+      <!-- 2. Customers -->
+      <li class="sidebar-nav-item">
+        <a href="/customers" class="sidebar-link <%= typeof title !== 'undefined' && title.includes('Customer') && !title.includes('Report') ? 'active' : '' %>">
+          <i class="bi bi-people-fill"></i>
+          <span>Customers</span>
+        </a>
+      </li>
+
+      <!-- 3. Rooms -->
+      <li class="sidebar-nav-item">
+        <a href="/rooms" class="sidebar-link <%= typeof title !== 'undefined' && title.includes('Room') && !title.includes('Report') ? 'active' : '' %>">
+          <i class="bi bi-door-open-fill"></i>
+          <span>Rooms</span>
+        </a>
+      </li>
+
+      <!-- 4. Reservations -->
+      <li class="sidebar-nav-item">
+        <a href="/reservations" class="sidebar-link <%= typeof title !== 'undefined' && (title.includes('Reservation') || title.includes('Booking')) && !title.includes('Report') ? 'active' : '' %>">
+          <i class="bi bi-journal-bookmark-fill"></i>
+          <span>Reservations</span>
+        </a>
+      </li>
+
+      <!-- 5. Payments & Billing -->
+      <li class="sidebar-nav-item">
+        <a href="/payments" class="sidebar-link <%= typeof title !== 'undefined' && (title.includes('Payment') || title.includes('Billing') || title.includes('Invoice')) && !title.includes('Report') ? 'active' : '' %>">
+          <i class="bi bi-credit-card-fill"></i>
+          <span>Payments</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-nav-group-title mt-4">Analytics & Reports</div>
+    <ul class="sidebar-nav">
+      <!-- 6. Reports Central Portal -->
+      <li class="sidebar-nav-item">
+        <a href="/reports" class="sidebar-link <%= typeof title !== 'undefined' && title.includes('Report') ? 'active' : '' %>">
+          <i class="bi bi-file-earmark-bar-graph-fill"></i>
+          <span>Reports Suite</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-nav-group-title mt-4">System</div>
+    <ul class="sidebar-nav">
+      <!-- Health API -->
+      <li class="sidebar-nav-item">
+        <a href="/health" target="_blank" class="sidebar-link">
+          <i class="bi bi-activity"></i>
+          <span>Health API</span>
+        </a>
+      </li>
+
+      <!-- Logout -->
+      <li class="sidebar-nav-item">
+        <a href="#" class="sidebar-link text-danger" data-bs-toggle="modal" data-bs-target="#logoutModal">
+          <i class="bi bi-box-arrow-left text-danger"></i>
+          <span class="text-danger">Logout</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Sidebar Footer: Admin Profile Summary -->
+  <div class="sidebar-footer">
+    <div class="admin-profile-pill">
+      <div class="admin-avatar">AD</div>
+      <div class="admin-info">
+        <span class="admin-name">Administrator</span>
+        <span class="admin-role">Online &bull; Active</span>
+      </div>
     </div>
   </div>
-</nav>
+</aside>
+
+<!-- Mobile Sidebar Backdrop -->
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<!-- Main Application Wrapper -->
+<div class="app-main">
+  <!-- Top Navigation Bar -->
+  <header class="app-topbar">
+    <div class="topbar-left">
+      <!-- Mobile Sidebar Toggle Button -->
+      <button class="sidebar-toggle-btn" id="sidebarToggleBtn" aria-label="Toggle Sidebar">
+        <i class="bi bi-list"></i>
+      </button>
+
+      <!-- Topbar Title / Location -->
+      <div class="topbar-breadcrumb d-none d-md-flex align-items-center gap-2">
+        <span class="fw-bold text-dark"><i class="bi bi-buildings text-warning me-1"></i>Grand Horizon Hotel</span>
+        <span class="text-muted">&bull;</span>
+        <span class="text-secondary small"><%= typeof title !== 'undefined' ? title.split('|')[0].trim() : 'Dashboard' %></span>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <!-- Live Clock -->
+      <div class="live-clock-badge d-none d-sm-inline-flex">
+        <i class="bi bi-clock-history text-primary"></i>
+        <span id="topbarClock">--:--:--</span>
+      </div>
+
+      <!-- Quick Action: New Reservation -->
+      <a href="/reservations/new" class="btn btn-sm btn-primary shadow-sm d-none d-md-inline-flex align-items-center gap-1">
+        <i class="bi bi-plus-circle"></i>
+        <span>New Booking</span>
+      </a>
+
+      <!-- Quick Action: Record Payment -->
+      <a href="/payments/new" class="btn btn-sm btn-outline-success d-none d-lg-inline-flex align-items-center gap-1">
+        <i class="bi bi-cash-stack"></i>
+        <span>Record Payment</span>
+      </a>
+
+      <!-- System Health Indicator -->
+      <a href="/health" target="_blank" class="btn btn-sm btn-light border" title="System Health Status">
+        <i class="bi bi-heart-pulse-fill text-success"></i>
+      </a>
+
+      <!-- Admin Profile Dropdown -->
+      <div class="dropdown">
+        <button class="btn btn-light border btn-sm dropdown-toggle d-flex align-items-center gap-2" type="button" id="topbarUserDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <span class="badge bg-primary rounded-circle px-2 py-1">A</span>
+          <span class="d-none d-sm-inline small fw-semibold">Admin</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="topbarUserDropdown">
+          <li><h6 class="dropdown-header">System Operator</h6></li>
+          <li><a class="dropdown-item small" href="/"><i class="bi bi-speedometer2 me-2"></i>Executive Dashboard</a></li>
+          <li><a class="dropdown-item small" href="/reports"><i class="bi bi-file-earmark-bar-graph me-2"></i>Reports Portal</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item small text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a></li>
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Body Content Area (closed in footer.ejs) -->
+  <div class="app-content-body">

@@ -245,3 +245,4 @@ export async function showCancelledReservationReport(req, res, next) {
     next(error);
   }
 }
+

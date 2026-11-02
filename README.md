@@ -38,12 +38,26 @@ The **Hotel Reservation & Management System (HRMS)** is an integrated management
 | Layer | Technologies |
 | :--- | :--- |
 | **Runtime & Language** | Node.js (v20+ LTS / v24+), JavaScript (ES Modules) |
-| **Server Framework** | Express.js 4.x |
-| **Template Engine** | EJS (Embedded JavaScript) with partials |
-| **Frontend Styling** | HTML5, CSS3, Bootstrap 5.3 (CDN), Bootstrap Icons |
+| **Server Framework** | Express.js 4.x / 5.x |
+| **Template Engine** | EJS (Embedded JavaScript) with reusable component partials |
+| **Frontend Styling** | HTML5, CSS3, Bootstrap 5.3 (CDN), Bootstrap Icons 1.11, Google Fonts (Plus Jakarta Sans & Inter) |
+| **Visualization & Charts** | Chart.js 4.4 (Monthly Revenue, Category Distribution, Monthly Bookings) |
 | **Security & Logging** | Helmet (HTTP headers & CSP), Morgan (HTTP logger) |
 | **Database & Driver** | MySQL 8.4 LTS via `mysql2/promise` connection pool |
 | **Configuration** | Dotenv (zero hardcoded credentials) |
+
+---
+
+## 🎨 Phase 8: Premium Administrative Design System
+
+The application features a complete redesign engineered for luxury hospitality administration:
+- **Fixed Sidebar Navigation (`265px`):** Brand identity, Core Operations (Dashboard, Customers, Rooms, Reservations, Payments), Analytics & Reports Portal, System Health API, and Admin profile session pill.
+- **Responsive Top Navigation Bar (`70px`):** Mobile offcanvas drawer trigger, breadcrumb tracking, live system clock (`#topbarClock`), quick action buttons, and operator account dropdown.
+- **Executive Statistic Cards (`.stat-widget`):** High-contrast KPI widgets featuring colored iconography, accent pill indicators, and typography optimized for executive monitoring.
+- **Dual View Modes for Rooms:** Seamlessly toggle between **Visual Room Cards Grid** (showing capacity, pricing badges, and operational status) and **Structured Data Table**.
+- **Responsive Offcanvas Drawer:** Full mobile usability with slide-in navigation, glassmorphism backdrop blur (`#sidebarBackdrop`), and auto-closing triggers.
+- **Interactive Enhancements:** Double-submit prevention on financial and booking forms with inline spinners, auto-dismissing flash alerts (6 seconds), and Bootstrap tooltips.
+- **Clean Print Stylesheet (`@media print`):** Dedicated printable invoice folios and settlement receipts with automatic header/nav masking.
 
 ---
 
