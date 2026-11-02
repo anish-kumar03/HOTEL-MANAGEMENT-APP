@@ -1,0 +1,33 @@
+{
+  "name": "hotel-reservation-management-system",
+  "version": "1.0.0",
+  "description": "Hotel Reservation & Management System (HRMS) - MCA Academic Project",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "keywords": [
+    "hotel-management",
+    "reservation-system",
+    "express",
+    "ejs",
+    "mysql",
+    "mvc",
+    "mca-project"
+  ],
+  "author": "Antigravity Architect",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^18.0.9",
+    "ejs": "^7.0.2",
+    "express": "^5.3.0",
+    "helmet": "^8.3.0",
+    "morgan": "^1.12.1",
+    "mysql2": "^3.24.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

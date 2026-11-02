@@ -1,0 +1,217 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<main class="container my-5">
+  <!-- Hero Section -->
+  <div class="p-5 mb-4 bg-white rounded-3 shadow-sm border border-light-subtle">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 mb-3 rounded-pill bg-primary-subtle text-primary border border-primary-subtle small fw-medium">
+          <i class="bi bi-shield-check"></i> Foundation Pipeline Verified
+        </div>
+        <h1 class="display-5 fw-bold text-dark mb-3"><%= appName %></h1>
+        <p class="lead text-secondary mb-4">
+          The foundation of the <strong>Hotel Reservation & Management System</strong> has been successfully initialized. 
+          Express.js, EJS template rendering, Helmet security headers, Morgan request logging, and environment configuration are actively operational.
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+          <a href="/health" target="_blank" class="btn btn-primary px-4 py-2">
+            <i class="bi bi-heart-pulse me-2"></i>Check Health API
+          </a>
+          <a href="#system-info" class="btn btn-outline-secondary px-4 py-2">
+            <i class="bi bi-info-circle me-2"></i>System Architecture
+          </a>
+        </div>
+      </div>
+      <div class="col-lg-4 text-center d-none d-lg-block">
+        <div class="p-4 bg-light rounded-4 border">
+          <i class="bi bi-cpu text-primary display-1 mb-3"></i>
+          <h5 class="fw-bold">Runtime Environment</h5>
+          <span class="badge bg-dark px-3 py-2 text-uppercase"><%= environment %> mode</span>
+          <p class="text-muted small mt-2 mb-0">Port: <%= port %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verification Status Cards -->
+  <div class="row g-4 mb-5" id="system-info">
+    <div class="col-md-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="p-3 bg-success-subtle text-success rounded-3">
+              <i class="bi bi-server fs-4"></i>
+            </div>
+            <div>
+              <h6 class="card-subtitle text-muted small">Server Status</h6>
+              <h5 class="card-title mb-0 fw-bold">Express.js 4.x Active</h5>
+            </div>
+          </div>
+          <p class="card-text text-muted small">
+            Modular route dispatching, JSON/URL-encoded body parsers, and centralized 404/500 handlers active.
+          </p>
+          <span class="badge bg-success-subtle text-success border border-success-subtle">
+            <i class="bi bi-check2 me-1"></i>Operational
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="p-3 bg-info-subtle text-info rounded-3">
+              <i class="bi bi-layout-wtf fs-4"></i>
+            </div>
+            <div>
+              <h6 class="card-subtitle text-muted small">Template Engine</h6>
+              <h5 class="card-title mb-0 fw-bold">EJS 3.x Rendered</h5>
+            </div>
+          </div>
+          <p class="card-text text-muted small">
+            Server-side rendering active with reusable partial layouts (<tt>header</tt>, <tt>navbar</tt>, <tt>footer</tt>).
+          </p>
+          <span class="badge bg-info-subtle text-info border border-info-subtle">
+            <i class="bi bi-check2 me-1"></i>Rendered Server-Side
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="p-3 <%= dbStatus.success ? 'bg-primary-subtle text-primary' : 'bg-warning-subtle text-warning' %> rounded-3">
+              <i class="bi bi-database fs-4"></i>
+            </div>
+            <div>
+              <h6 class="card-subtitle text-muted small">Database Driver</h6>
+              <h5 class="card-title mb-0 fw-bold">MySQL 8.4 Pool</h5>
+            </div>
+          </div>
+          <p class="card-text text-muted small">
+            <%= dbStatus.message %>
+          </p>
+          <span class="badge <%= dbStatus.success ? 'bg-success-subtle text-success border-success-subtle' : 'bg-warning-subtle text-warning border-warning-subtle' %> border">
+            <i class="bi <%= dbStatus.success ? 'bi-check-circle' : 'bi-exclamation-triangle' %> me-1"></i>
+            <%= dbStatus.success ? 'Connected' : 'Configured via .env' %>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modules Implementation Matrix -->
+  <div class="card border-0 shadow-sm mb-5">
+    <div class="card-header bg-white py-3">
+      <div class="d-flex align-items-center justify-content-between">
+        <h5 class="card-title mb-0 fw-bold">
+          <i class="bi bi-grid-3x3-gap-fill text-primary me-2"></i>Academic Project Modules Matrix
+        </h5>
+        <span class="badge bg-primary rounded-pill">10 Modules Planned</span>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th scope="col" class="ps-4">#</th>
+              <th scope="col">Module Name</th>
+              <th scope="col">Category</th>
+              <th scope="col">Development Status</th>
+              <th scope="col" class="text-end pe-4">Target Phase</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% modules.forEach((mod, index) => { %>
+              <tr>
+                <td class="ps-4 text-muted fw-semibold"><%= String(index + 1).padStart(2, '0') %></td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="bi <%= mod.icon %> text-secondary"></i>
+                    <span class="fw-medium text-dark"><%= mod.name %></span>
+                  </div>
+                </td>
+                <td><span class="badge bg-light text-secondary border">Core HRMS</span></td>
+                <td>
+                  <span class="badge bg-secondary-subtle text-secondary border">
+                    <i class="bi bi-clock-history me-1"></i>Ready for Scaffolding
+                  </span>
+                </td>
+                <td class="text-end pe-4">
+                  <span class="badge bg-dark-subtle text-dark"><%= mod.status %></span>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Security & Middleware Summary -->
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white py-3 fw-bold">
+          <i class="bi bi-shield-lock-fill text-primary me-2"></i>Security & Transport Layer
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush small">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span><strong>Helmet Protection:</strong> HTTP security headers & CSP</span>
+              <span class="badge bg-success">Active</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span><strong>Morgan Logger:</strong> Structured HTTP request logging</span>
+              <span class="badge bg-success">Active</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span><strong>Body Parsers:</strong> express.json() & express.urlencoded()</span>
+              <span class="badge bg-success">Active</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span><strong>Static Assets:</strong> Public directory caching (/css, /js)</span>
+              <span class="badge bg-success">Active</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white py-3 fw-bold">
+          <i class="bi bi-journal-code text-primary me-2"></i>Technical Specification
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush small">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span><strong>Architecture:</strong> Layered MVC with ES Modules</span>
+              <span class="badge bg-primary">Enforced</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span><strong>Database:</strong> MySQL 8.4 LTS via mysql2/promise</span>
+              <span class="badge bg-primary">3NF Schema Ready</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span><strong>Environment Config:</strong> Dotenv with strict fallbacks</span>
+              <span class="badge bg-primary">Zero Hardcoded Secrets</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span><strong>Error Handling:</strong> Centralized 404 & 500 Middleware</span>
+              <span class="badge bg-primary">Active</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>
+

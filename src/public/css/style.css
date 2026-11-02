@@ -1,0 +1,53 @@
+/* ==============================================================================
+   HOTEL RESERVATION & MANAGEMENT SYSTEM (HRMS) - BASE STYLESHEET
+   ============================================================================== */
+
+:root {
+  --hrms-primary: #0d6efd;
+  --hrms-dark: #1e293b;
+  --hrms-light: #f8fafc;
+  --hrms-border: #e2e8f0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #334155;
+  background-color: #f8fafc;
+}
+
+/* Card Enhancements */
+.card {
+  border-radius: 0.75rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+}
+
+/* Navbar Enhancements */
+.navbar {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.navbar-brand {
+  letter-spacing: -0.025em;
+}
+
+/* Tables */
+.table > :not(caption) > * > * {
+  padding: 0.85rem 1rem;
+}
+
+/* Badge Tweaks */
+.badge {
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+/* Code block formatting */
+pre code {
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.85rem;
+}
+
